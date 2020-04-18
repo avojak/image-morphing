@@ -1,16 +1,17 @@
 import functools
+try:
+    from libmorphing.morphing import ImageMorph
+except ImportError:
+    import sys
+    sys.path.append('../')
+    from lib.libmorphing.morphing import ImageMorph
 import os
+import uuid
 
 from flask import (
     Blueprint, flash, g, current_app, redirect, render_template, request, session, url_for
 )
-#from werkzeug.security import check_password_hash, generate_password_hash
-# from flask_uploads import UploadSet, IMAGES
-from werkzeug.utils import secure_filename
-
-
-#from flaskr.db import get_db
-
+from threading import Thread
 
 bp = Blueprint('home', __name__, url_prefix='/')
 
@@ -21,73 +22,59 @@ def home():
     return render_template('home.html')
 
 
-# @bp.route('/upload', methods=['POST'])
-# def upload_file():
-#     print('Hello, upload')
-#     # Check if the post request has the file part
-#     if 'file' not in request.files:
-#         flash('No file part')
-#         return redirect(request.url)
-#     file = request.files['file']
-#     # If user does not select file, browser also submit an empty part without filename
-#     if file.filename == '':
-#         flash('No selected file')
-#         return redirect(request.url)
-#     if file and allowed_file(file.filename):
-#         filename = secure_filename(file.filename)
-#         file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
-#         # return redirect(url_for('uploaded_file', filename=filename))
-
-# photos = UploadSet('photos', IMAGES)
-
-
 @bp.route('/morph', methods=['POST', 'GET'])
 def morph():
     if request.method == 'POST':
-        print('Hello, upload')
-        print(request.files)
+        # Ensure that we've actually received both image files
         if 'source_img' not in request.files or request.files['source_img'].filename == '':
             flash('No source image')
             return redirect(request.url)
         if 'target_img' not in request.files or request.files['target_img'].filename == '':
             flash('No target image')
             return redirect(request.url)
+        # Ensure that the received files are allowed
+        if not allowed_file(request.files['source_img'].filename):
+            flash('Source image file type is not allowed')
+            return redirect(request.url)
+        if not allowed_file(request.files['target_img'].filename):
+            flash('Target image file type is not allowed')
+            return redirect(request.url)
 
+        # Generate the request ID
+        req_id = str(uuid.uuid1())
+        current_app.logger.info('Received request [{}]'.format(req_id))
+
+        # Create the working directories for the request
+        req_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], req_id)
+        res_dir = os.path.join(current_app.config['RESULT_FOLDER'], req_id)
+        os.makedirs(req_dir)
+        os.makedirs(res_dir)
+
+        # Extract the image files from the request and save them in the upload folder
         source_img = request.files['source_img']
         target_img = request.files['target_img']
+        source_img_path = os.path.join(req_dir, 'source_img')
+        target_img_path = os.path.join(req_dir, 'target_img')
+        source_img.save(source_img_path)
+        target_img.save(target_img_path)
 
-        source_img_filename = secure_filename(source_img.filename)
-        target_img_filename = secure_filename(target_img.filename)
+        source_points = [[167.0, 227.0], [287.0, 227.0], [86.0, 213.0], [368.0, 222.0], [182.0, 372.0], [271.0, 372.0],
+                         [233.0, 306.0], [240.0, 8.0], [227.0, 458.0]]
+        target_points = [[162.0, 209.0], [305.0, 209.0], [28.0, 15.0], [450.0, 18.0], [198.0, 346.0], [270.0, 345.0],
+                         [238.0, 293.0], [233.0, 59.0], [237.0, 382.0]]
 
-        print('source image: ' + source_img_filename)
-        print('target image: ' + target_img_filename)
+        Thread(target=thread_func, args=(source_img_path, target_img_path, source_points, target_points, res_dir)).start()
 
-        source_img.save(os.path.join(current_app.config['UPLOAD_FOLDER'], source_img_filename))
-        target_img.save(os.path.join(current_app.config['UPLOAD_FOLDER'], target_img_filename))
+        return {'uuid': req_id}
 
-        # rec = Photo(filename=filename, user=g.user.id)
-        # rec.store()
-        flash("Photo saved.")
-        # return redirect(url_for('show', id=rec.id))
-
-
-        # Check if the post request has the file part
-        # if 'file' not in request.files:
-        #     flash('No file part')
-        #     return redirect(request.url)
-        # file = request.files['file']
-        # # If user does not select file, browser also submit an empty part without filename
-        # if file.filename == '':
-        #     flash('No selected file')
-        #     return redirect(request.url)
-        # if file and allowed_file(file.filename):
-        #     filename = secure_filename(file.filename)
-        #     file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
-        #     # return redirect(url_for('uploaded_file', filename=filename))
     else:
-        g.user = 'Andrew'
+        # g.user = 'Andrew'
         return render_template('home.html')
 
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in current_app.config['ALLOWED_EXTENSIONS']
+
+
+def thread_func(source_img_path, target_img_path, source_points, target_points, output_dir):
+    ImageMorph(source_img_path, target_img_path, source_points, target_points, output_dir)

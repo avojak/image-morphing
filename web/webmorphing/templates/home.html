@@ -4,8 +4,8 @@
 <nav>
   <h1>Flaskr</h1>
   <ul>
-    {% if g.user %}
-      <li><span>{{ g.user }}</span>
+    {% if g.session_id %}
+      <li><span>{{ g.session_id }}</span>
     {% endif %}
   </ul>
 </nav>

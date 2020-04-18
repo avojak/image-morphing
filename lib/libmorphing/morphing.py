@@ -8,6 +8,7 @@ except ImportError:
     import lib.libmorphing.util as util
 
 import numpy as np
+import os
 
 from cv2 import cv2
 from multiprocessing import Pool
@@ -16,7 +17,8 @@ from scipy.spatial import Delaunay
 
 class ImageMorph:
 
-    def __init__(self, source_img_path: str, target_img_path: str, source_points: list, target_points: list) -> None:
+    def __init__(self, source_img_path: str, target_img_path: str, source_points: list, target_points: list,
+                 output_dir: str) -> None:
         """
         Create an animated GIF which morphs the source image into the target image.
 
@@ -27,6 +29,7 @@ class ImageMorph:
             correspond to points in the target image.
           - target_points: The list of points selected in the target image which
             correspond to points in the source image.
+          - output_dir: The location where result images will be placed.
         """
         self.source_img = cv2.imread(source_img_path)
         self.target_img = cv2.imread(target_img_path)
@@ -34,6 +37,9 @@ class ImageMorph:
         assert len(source_points) == len(target_points)
         self.source_points = source_points.copy()
         self.target_points = target_points.copy()
+
+        self.output_dir = output_dir
+        os.makedirs(self.output_dir, exist_ok=True)
 
         assert self.source_img.shape == self.target_img.shape
 
@@ -49,13 +55,16 @@ class ImageMorph:
         """
         Performs the morphing.
         """
-        io.write_mapping_img(self.source_img, self.target_img, self.source_points, self.target_points)
+        io.write_mapping_img(self.source_img, self.target_img, self.source_points, self.target_points,
+                             os.path.join(self.output_dir, 'mapping.jpg'))
         triangulation = Delaunay(self.source_points)
         # From this point on, the points must be a NumPy array
         self.source_points = np.array(self.source_points)
         self.target_points = np.array(self.target_points)
-        io.write_triangulation_img(triangulation, self.source_img, self.source_points, 'source')
-        io.write_triangulation_img(triangulation, self.target_img, self.target_points, 'target')
+        io.write_triangulation_img(triangulation, self.source_img, self.source_points,
+                                   os.path.join(self.output_dir, 'source_triangulation.jpg'))
+        io.write_triangulation_img(triangulation, self.target_img, self.target_points,
+                                   os.path.join(self.output_dir, 'target_triangulation.jpg'))
 
         H, W, C = self.source_img.shape
 
@@ -64,6 +73,7 @@ class ImageMorph:
         fps = 10
         num_frames = duration * fps
 
+        # TODO: Make pool size configurable
         pool = Pool(processes=4)
         results = []
         for frame_num in range(0, num_frames):
@@ -74,7 +84,9 @@ class ImageMorph:
         for res in results:
             res.get(timeout=None)
 
-        io.write_gif('test')
+        frame_dir = os.path.join(self.output_dir, 'frames')
+        filename = os.path.join(self.output_dir, 'morphing.gif')
+        io.write_gif(frame_dir, filename)
 
     def _compute_frame(self, triangulation, t, shape):
         """
@@ -136,4 +148,4 @@ class ImageMorph:
 
     def _process_func(self, triangulation, t, frame_num, shape, group_name):
         frame = self._compute_frame(triangulation, t, shape)
-        io.write_frame(frame, frame_num, group_name)
+        io.write_frame(frame, frame_num, os.path.join(self.output_dir, 'frames'))
