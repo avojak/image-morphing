@@ -1,0 +1,54 @@
+<!doctype html>
+<title>{% block title %}{% endblock %} - WebMorphing</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<nav>
+  <h1>Flaskr</h1>
+  <ul>
+    {% if g.user %}
+      <li><span>{{ g.user }}</span>
+    {% endif %}
+  </ul>
+</nav>
+
+<form method="POST" id="images" action="{{ url_for('home.morph') }}" enctype=multipart/form-data>
+  <table>
+    <thead>
+      <tr>
+        <td>Source Image</td>
+        <td>Target Image</td>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>
+          <p><input type="file"  accept="image/*" name="source_img" id="source_img"  onchange="loadFile(event, 'source_file')" style="display: none;"></p>
+          <p><label for="source_img" style="cursor: pointer;">Upload Image</label></p>
+          <p><img id="source_file" width="200" /></p>
+        </td>
+        <td>
+          <p><input type="file"  accept="image/*" name="target_img" id="target_img"  onchange="loadFile(event, 'target_file')" style="display: none;"></p>
+          <p><label for="target_img" style="cursor: pointer;">Upload Image</label></p>
+          <p><img id="target_file" width="200" /></p>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</form>
+<button type="submit" form="images">Go!</button>
+
+<script>
+var loadFile = function(event, img_id) {
+	var image = document.getElementById(img_id);
+	image.src = URL.createObjectURL(event.target.files[0]);
+};
+</script>
+
+<section class="content">
+  <header>
+    {% block header %}{% endblock %}
+  </header>
+  {% for message in get_flashed_messages() %}
+    <div class="flash">{{ message }}</div>
+  {% endfor %}
+  {% block content %}{% endblock %}
+</section>

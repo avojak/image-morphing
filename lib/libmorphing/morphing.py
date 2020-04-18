@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 
-import morphing.io
-import morphing.util
+try:
+    import libmorphing.io as io
+    import libmorphing.util as util
+except ImportError:
+    import lib.libmorphing.io as io
+    import lib.libmorphing.util as util
 
-import logging
 import numpy as np
 
 from cv2 import cv2
@@ -43,13 +46,16 @@ class ImageMorph:
         self._morph()
 
     def _morph(self):
-        morphing.io.write_mapping_img(self.source_img, self.target_img, self.source_points, self.target_points)
+        """
+        Performs the morphing.
+        """
+        io.write_mapping_img(self.source_img, self.target_img, self.source_points, self.target_points)
         triangulation = Delaunay(self.source_points)
         # From this point on, the points must be a NumPy array
         self.source_points = np.array(self.source_points)
         self.target_points = np.array(self.target_points)
-        morphing.io.write_triangulation_img(triangulation, self.source_img, self.source_points, 'source')
-        morphing.io.write_triangulation_img(triangulation, self.target_img, self.target_points, 'target')
+        io.write_triangulation_img(triangulation, self.source_img, self.source_points, 'source')
+        io.write_triangulation_img(triangulation, self.target_img, self.target_points, 'target')
 
         H, W, C = self.source_img.shape
 
@@ -68,7 +74,7 @@ class ImageMorph:
         for res in results:
             res.get(timeout=None)
 
-        gif = morphing.io.write_gif('test')
+        io.write_gif('test')
 
     def _compute_frame(self, triangulation, t, shape):
         """
@@ -116,7 +122,7 @@ class ImageMorph:
 
             # For each point in the average triangle, find the corresponding points
             # in the source and target triangle, and find the weighted average.
-            average_points = morphing.util.get_points_in_triangulation(average_triangle, average_triangulation)
+            average_points = util.get_points_in_triangulation(average_triangle, average_triangulation)
             for point in average_points:
                 source_point = np.transpose(np.dot(source_transform, np.transpose(np.array([point[0], point[1], 1]))))
                 target_point = np.transpose(np.dot(target_transform, np.transpose(np.array([point[0], point[1], 1]))))
@@ -130,4 +136,4 @@ class ImageMorph:
 
     def _process_func(self, triangulation, t, frame_num, shape, group_name):
         frame = self._compute_frame(triangulation, t, shape)
-        morphing.io.write_frame(frame, frame_num, group_name)
+        io.write_frame(frame, frame_num, group_name)

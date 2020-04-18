@@ -1,4 +1,8 @@
-from morphing.morphing import ImageMorph
+try:
+    from libmorphing.morphing import ImageMorph
+except ImportError:
+    from lib.libmorphing.morphing import ImageMorph
+
 from pathlib import Path
 
 

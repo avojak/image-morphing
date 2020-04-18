@@ -2,7 +2,6 @@ import glob
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-import subprocess
 
 from cv2 import cv2
 from scipy.spatial import Voronoi

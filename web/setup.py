@@ -1,14 +1,16 @@
 from setuptools import setup
 
 setup(
-    name='image_morphing',
+    name='webmorphing',
     version='0.0.1',
     author='Andrew Vojak',
     author_email='andrew.vojak@gmail.com',
-    description='Implementation of image morphing',
+    description='Web service for image morphing',
     license='Apache License, Version 2.0',
     url='https://github.com/avojak/image-morphing',
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
-    packages=['morphing', 'tests']
+    zip_safe=False,
+    include_package_data=True,
+    packages=['webmorphing']
 )

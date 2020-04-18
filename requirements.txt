@@ -2,3 +2,8 @@ matplotlib==3.1.2
 numpy==1.18.1
 opencv-python==4.1.2.30
 scipy==1.4.1
+boto3==1.12.40
+flask==1.1.2
+Werkzeug==1.0.1
+waitress==1.4.3
+Flask-Uploads=0.2.1
