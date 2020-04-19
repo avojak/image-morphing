@@ -20,7 +20,8 @@ clean:
 		lib/dist/ \
 	  	lib/.eggs/ \
 	  	lib/libmorphing.egg-info \
-	  	lib/.pytest_cache/
+	  	lib/.pytest_cache/ \
+	  	lib/tests/outputs/
 	# Cleanup web
 	$(python) web/setup.py clean
 	rm -rf web/build/ \
