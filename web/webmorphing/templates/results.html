@@ -1,8 +1,11 @@
 <!doctype html>
-<title>{% block title %}{% endblock %} - WebMorphing</title>
+<title>Image Morphing</title>
+<script src="https://code.jquery.com/jquery-3.5.0.min.js"
+        integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ="
+        crossorigin="anonymous"></script>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <nav>
-  <h1>Flaskr</h1>
+  <h1>Image Morphing</h1>
   <ul>
     {% if g.req_id %}
       <li><span>{{ g.req_id }}</span>
@@ -13,16 +16,16 @@
 <table>
     <tbody>
         <tr>
-            <td><img src="" alt="Source Image"/></td>
-            <td><img src="" alt="Target Image"/></td>
+            <td><img src="" id="source_img" alt="Source Image" width="200"/></td>
+            <td><img src="" id="target_img" alt="Target Image" width="200"/></td>
         </tr>
         <tr>
-            <td><img src="" alt="Point Mapping"/></td>
-            <td><img src="" alt="Source Triangulation"/></td>
-            <td><img src="" alt="Target Triangulation"/></td>
+            <td><img src="" id="point_mapping" alt="Point Mapping" width="200"/></td>
+            <td><img src="" id="source_triangulation" alt="Source Triangulation" width="200"/></td>
+            <td><img src="" id="target_triangulation" alt="Target Triangulation" width="200"/></td>
         </tr>
         <tr>
-            <td><img src="" alt="Morphing GIF"/></td>
+            <td><img src="" id="morphing_gif" alt="Morphing GIF" width="200"/></td>
         </tr>
     </tbody>
 </table>
@@ -38,5 +41,32 @@
 </section>
 
 <script>
+    function retrieveImage(url, img_tag_id, img_data_type) {
+        $.ajax({
+            url: url,
+            success: function (data) {
+                let byte_string = data['data'];
+                let image_data = byte_string.split('\'')[1];
+                // TODO: Maybe insert the <img> element rather than changing the src attribute. This might fix the issue with the GIF not fully animating
+                $(img_tag_id).attr('src', 'data:' + img_data_type + ';base64,' + image_data);
+            },
+            error: function(xhr, ajaxOptions, thrownError) {
+                if(xhr.status === 404) {
+                    setTimeout(retrieveImage, 1000, url, img_tag_id, img_data_type);
+                } else {
+                    console.log(thrownError);
+                }
+            },
+        });
+    }
 
+    $(document).ready(function() {
+        // Schedule the first invocations
+        setTimeout(retrieveImage, 1000, "{{ url_for('home.get_source_image', req_id=g.req_id) }}", "#source_img", "image/jpeg");
+        setTimeout(retrieveImage, 1000, "{{ url_for('home.get_target_image', req_id=g.req_id) }}", "#target_img", "image/jpeg");
+        setTimeout(retrieveImage, 1000, "{{ url_for('home.get_point_mapping_image', req_id=g.req_id) }}", "#point_mapping", "image/png");
+        setTimeout(retrieveImage, 1000, "{{ url_for('home.get_source_triangulation_image', req_id=g.req_id) }}", "#source_triangulation", "image/png");
+        setTimeout(retrieveImage, 1000, "{{ url_for('home.get_target_triangulation_image', req_id=g.req_id) }}", "#target_triangulation", "image/png");
+        setTimeout(retrieveImage, 1000, "{{ url_for('home.get_morphing_gif', req_id=g.req_id) }}", "#morphing_gif", "image/gif");
+    });
 </script>

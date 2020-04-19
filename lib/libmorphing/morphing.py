@@ -85,20 +85,20 @@ class ImageMorph:
         num_frames = self.gif_duration * self.gif_fps
 
         # TODO: Make pool size configurable?
-        pool = Pool(processes=self.pool_size)
-        results = []
-        for frame_num in range(0, num_frames):
-            t = frame_num / num_frames
-            res = pool.apply_async(self._process_func, (triangulation, t, frame_num, (H, W, C), 'test'))
-            results.append(res)
+        with Pool(processes=self.pool_size) as pool:
+            results = []
+            for frame_num in range(0, num_frames):
+                t = frame_num / num_frames
+                res = pool.apply_async(self._process_func, (triangulation, t, frame_num, (H, W, C), 'test'))
+                results.append(res)
 
-        for res in results:
-            res.get(timeout=None)
+            for res in results:
+                res.get(timeout=None)
 
-        frame_dir = os.path.join(self.output_dir, 'frames')
-        filename = os.path.join(self.output_dir, 'morphing.gif')
-        logging.debug('Creating GIF...')
-        io.write_gif(frame_dir, filename)
+            frame_dir = os.path.join(self.output_dir, 'frames')
+            filename = os.path.join(self.output_dir, 'morphing.gif')
+            logging.debug('Creating GIF...')
+            io.write_gif(frame_dir, filename)
 
     def _compute_frame(self, triangulation, t, shape):
         """

@@ -5,13 +5,16 @@ except ImportError:
     import sys
     sys.path.append('../')
     from lib.libmorphing.morphing import ImageMorph
+import base64
+import io
 import os
 import uuid
 
 from flask import (
-    Blueprint, flash, g, current_app, redirect, render_template, request, session, url_for
-)
+    abort, Blueprint, flash, g, current_app, redirect, render_template, request, session, url_for,
+    send_file, make_response, jsonify)
 from threading import Thread
+from urllib.parse import quote
 
 bp = Blueprint('home', __name__, url_prefix='/')
 
@@ -45,8 +48,8 @@ def morph():
         current_app.logger.info('Received request [{}]'.format(req_id))
 
         # Create the working directories for the request
-        req_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], req_id)
-        res_dir = os.path.join(current_app.config['RESULT_FOLDER'], req_id)
+        req_dir = get_req_dir(req_id)
+        res_dir = get_res_dir(req_id)
         os.makedirs(req_dir)
         os.makedirs(res_dir)
 
@@ -63,7 +66,7 @@ def morph():
         target_points = [[162.0, 209.0], [305.0, 209.0], [28.0, 15.0], [450.0, 18.0], [198.0, 346.0], [270.0, 345.0],
                          [238.0, 293.0], [233.0, 59.0], [237.0, 382.0]]
 
-        # Thread(target=thread_func, args=(source_img_path, target_img_path, source_points, target_points, res_dir)).start()
+        Thread(target=thread_func, args=(source_img_path, target_img_path, source_points, target_points, res_dir)).start()
 
         # g.req_id = req_id
         return redirect(url_for('home.morph_result', req_id=req_id))
@@ -82,34 +85,55 @@ def morph_result(req_id):
     return render_template('results.html')
 
 
-@bp.route('/results/source-image', methods=['GET'])
+@bp.route('/results/<req_id>/source-image', methods=['GET'])
 def get_source_image(req_id):
-    pass
+    return get_image(os.path.join(get_req_dir(req_id), 'source_img'))
 
 
-@bp.route('/results/target-image', methods=['GET'])
+@bp.route('/results/<req_id>/target-image', methods=['GET'])
 def get_target_image(req_id):
-    pass
+    return get_image(os.path.join(get_req_dir(req_id), 'target_img'))
 
 
-@bp.route('/results/point-mapping-image', methods=['GET'])
+@bp.route('/results/<req_id>/point-mapping-image', methods=['GET'])
 def get_point_mapping_image(req_id):
-    pass
+    return get_image(os.path.join(get_res_dir(req_id), 'mapping.png'))
 
 
-@bp.route('/results/source-triangulation-image', methods=['GET'])
+@bp.route('/results/<req_id>/source-triangulation-image', methods=['GET'])
 def get_source_triangulation_image(req_id):
-    pass
+    return get_image(os.path.join(get_res_dir(req_id), 'source_triangulation.png'))
 
 
-@bp.route('/results/target-triangulation-image', methods=['GET'])
+@bp.route('/results/<req_id>/target-triangulation-image', methods=['GET'])
 def get_target_triangulation_image(req_id):
-    pass
+    return get_image(os.path.join(get_res_dir(req_id), 'target_triangulation.png'))
 
 
-@bp.route('/results/morphing-gif', methods=['GET'])
+@bp.route('/results/<req_id>/morphing-gif', methods=['GET'])
 def get_morphing_gif(req_id):
-    pass
+    return get_image(os.path.join(get_res_dir(req_id), 'morphing.gif'))
+
+
+def get_image(img_path):
+    if os.path.exists(img_path) and os.path.isfile(img_path):
+        with open(img_path, 'rb') as img_file:
+            output = io.BytesIO()
+            output.write(img_file.read())
+            output.seek(0)
+            img_base64 = base64.b64encode(output.read())
+            return jsonify({'data': str(img_base64)})
+    else:
+        # TODO: Don't return a 404 - this clogs up the logs
+        abort(404)
+
+
+def get_req_dir(req_id):
+    return os.path.join(current_app.config['UPLOAD_FOLDER'], req_id)
+
+
+def get_res_dir(req_id):
+    return os.path.join(current_app.config['RESULT_FOLDER'], req_id)
 
 
 def allowed_file(filename):
