@@ -1,0 +1,42 @@
+<!doctype html>
+<title>{% block title %}{% endblock %} - WebMorphing</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<nav>
+  <h1>Flaskr</h1>
+  <ul>
+    {% if g.req_id %}
+      <li><span>{{ g.req_id }}</span>
+    {% endif %}
+  </ul>
+</nav>
+
+<table>
+    <tbody>
+        <tr>
+            <td><img src="" alt="Source Image"/></td>
+            <td><img src="" alt="Target Image"/></td>
+        </tr>
+        <tr>
+            <td><img src="" alt="Point Mapping"/></td>
+            <td><img src="" alt="Source Triangulation"/></td>
+            <td><img src="" alt="Target Triangulation"/></td>
+        </tr>
+        <tr>
+            <td><img src="" alt="Morphing GIF"/></td>
+        </tr>
+    </tbody>
+</table>
+
+<section class="content">
+  <header>
+    {% block header %}{% endblock %}
+  </header>
+  {% for message in get_flashed_messages() %}
+    <div class="flash">{{ message }}</div>
+  {% endfor %}
+  {% block content %}{% endblock %}
+</section>
+
+<script>
+
+</script>

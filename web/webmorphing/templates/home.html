@@ -4,8 +4,8 @@
 <nav>
   <h1>Flaskr</h1>
   <ul>
-    {% if g.session_id %}
-      <li><span>{{ g.session_id }}</span>
+    {% if g.req_id %}
+      <li><span>{{ g.req_id }}</span>
     {% endif %}
   </ul>
 </nav>
@@ -36,13 +36,6 @@
 </form>
 <button type="submit" form="images">Go!</button>
 
-<script>
-var loadFile = function(event, img_id) {
-	var image = document.getElementById(img_id);
-	image.src = URL.createObjectURL(event.target.files[0]);
-};
-</script>
-
 <section class="content">
   <header>
     {% block header %}{% endblock %}
@@ -52,3 +45,10 @@ var loadFile = function(event, img_id) {
   {% endfor %}
   {% block content %}{% endblock %}
 </section>
+
+<script>
+var loadFile = function(event, img_id) {
+	var image = document.getElementById(img_id);
+	image.src = URL.createObjectURL(event.target.files[0]);
+};
+</script>

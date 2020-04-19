@@ -63,13 +63,53 @@ def morph():
         target_points = [[162.0, 209.0], [305.0, 209.0], [28.0, 15.0], [450.0, 18.0], [198.0, 346.0], [270.0, 345.0],
                          [238.0, 293.0], [233.0, 59.0], [237.0, 382.0]]
 
-        Thread(target=thread_func, args=(source_img_path, target_img_path, source_points, target_points, res_dir)).start()
+        # Thread(target=thread_func, args=(source_img_path, target_img_path, source_points, target_points, res_dir)).start()
 
-        return {'uuid': req_id}
-
+        # g.req_id = req_id
+        return redirect(url_for('home.morph_result', req_id=req_id))
     else:
+        # if 'req_id' in request.args.keys():
+        #     g.req_id = request.args.get('req_id')
+        #     return render_template('results.html')
+        # else:
         # g.user = 'Andrew'
         return render_template('home.html')
+
+
+@bp.route('/morph/<req_id>', methods=['GET'])
+def morph_result(req_id):
+    g.req_id = req_id
+    return render_template('results.html')
+
+
+@bp.route('/results/source-image', methods=['GET'])
+def get_source_image(req_id):
+    pass
+
+
+@bp.route('/results/target-image', methods=['GET'])
+def get_target_image(req_id):
+    pass
+
+
+@bp.route('/results/point-mapping-image', methods=['GET'])
+def get_point_mapping_image(req_id):
+    pass
+
+
+@bp.route('/results/source-triangulation-image', methods=['GET'])
+def get_source_triangulation_image(req_id):
+    pass
+
+
+@bp.route('/results/target-triangulation-image', methods=['GET'])
+def get_target_triangulation_image(req_id):
+    pass
+
+
+@bp.route('/results/morphing-gif', methods=['GET'])
+def get_morphing_gif(req_id):
+    pass
 
 
 def allowed_file(filename):
