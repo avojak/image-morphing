@@ -1,17 +1,22 @@
-python = python3
+python=python3
+
+VERSION_FILE=VERSION
+VERSION=`cat $(VERSION_FILE)`
 
 .PHONY: lib web image
 
 all: lib web image
 
 lib:
+	echo $(VERSION) > lib/VERSION
 	cd lib/ && $(python) setup.py sdist
 
 web:
+	echo $(VERSION) > web/VERSION
 	cd web/ && $(python) setup.py sdist
 
 image:
-	docker build . --tag avojak/image-morphing
+	docker build . --tag avojak/image-morphing:$(VERSION)
 
 clean:
 	# Cleanup lib

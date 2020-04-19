@@ -1,8 +1,11 @@
 from setuptools import setup
 
+with open('VERSION') as version_file:
+    version = version_file.read().strip()
+
 setup(
     name='libmorphing',
-    version='0.0.1',
+    version=version,
     author='Andrew Vojak',
     author_email='andrew.vojak@gmail.com',
     description='Implementation of image morphing',

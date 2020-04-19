@@ -1,3 +1,4 @@
 graft webmorphing/static
 graft webmorphing/templates
 global-exclude *.pyc
+include VERSION
