@@ -71,9 +71,11 @@ class ImageMorph:
                              os.path.join(self.output_dir, 'mapping.png'))
         logging.debug('Creating Delaunay triangulation...')
         triangulation = Delaunay(self.source_points)
+
         # From this point on, the points must be a NumPy array
         self.source_points = np.array(self.source_points)
         self.target_points = np.array(self.target_points)
+
         logging.debug('Writing triangulation images...')
         io.write_triangulation_img(triangulation, self.source_img, self.source_points,
                                    os.path.join(self.output_dir, 'source_triangulation.png'))
@@ -89,7 +91,7 @@ class ImageMorph:
             results = []
             for frame_num in range(0, num_frames):
                 t = frame_num / num_frames
-                res = pool.apply_async(self._process_func, (triangulation, t, frame_num, (H, W, C), 'test'))
+                res = pool.apply_async(self._process_func, (triangulation, t, frame_num, (H, W, C)))
                 results.append(res)
 
             for res in results:
@@ -158,7 +160,7 @@ class ImageMorph:
                     frame[point[1], point[0], c] = round((1 - t) * source_val + t * target_val)
         return frame
 
-    def _process_func(self, triangulation, t, frame_num, shape, group_name):
+    def _process_func(self, triangulation, t, frame_num, shape):
         frame = self._compute_frame(triangulation, t, shape)
         io.write_frame(frame, frame_num, os.path.join(self.output_dir, 'frames'))
         logging.debug('Created frame {}'.format(str(frame_num)))

@@ -1,54 +1,96 @@
 <!doctype html>
-<title>Image Morphing</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<head>
+    <title>Image Morphing</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+          integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
 <nav>
-  <h1>Image Morphing</h1>
-  <ul>
-    {% if g.req_id %}
-      <li><span>{{ g.req_id }}</span>
-    {% endif %}
-  </ul>
+    <h1>Image Morphing</h1>
+    <ul>
+        {% if g.req_id %}
+        <li><span>{{ g.req_id }}</span>
+            {% endif %}
+    </ul>
 </nav>
 
 <form method="POST" id="images" action="{{ url_for('home.morph') }}" enctype=multipart/form-data>
-  <table>
-    <thead>
-      <tr>
-        <td>Source Image</td>
-        <td>Target Image</td>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>
-          <p><input type="file"  accept="image/*" name="source_img" id="source_img"  onchange="loadFile(event, 'source_file')" style="display: none;"></p>
-          <p><label for="source_img" style="cursor: pointer;">Upload Image</label></p>
-          <p><img id="source_file" width="200" /></p>
-        </td>
-        <td>
-          <p><input type="file"  accept="image/*" name="target_img" id="target_img"  onchange="loadFile(event, 'target_file')" style="display: none;"></p>
-          <p><label for="target_img" style="cursor: pointer;">Upload Image</label></p>
-          <p><img id="target_file" width="200" /></p>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+    <table>
+        <thead>
+        <tr>
+            <td>Source Image</td>
+            <td>Target Image</td>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>
+                <p><input type="file" accept="image/*" name="source_img" id="source_img"></p>
+<!--                <img id="source_img" src="" style="display: none" hidden />-->
+                <canvas id="source_img_canvas" style="cursor:crosshair"></canvas>
+            </td>
+            <td>
+                <p><input type="file" accept="image/*" name="target_img" id="target_img"></p>
+<!--                <img id="target_img" src="" style="display: none" hidden />-->
+                <canvas id="target_img_canvas" style="cursor:crosshair"></canvas>
+            </td>
+        </tr>
+        </tbody>
+    </table>
 </form>
 <button type="submit" form="images">Go!</button>
 
 <section class="content">
-  <header>
-    {% block header %}{% endblock %}
-  </header>
-  {% for message in get_flashed_messages() %}
+    <header>
+        {% block header %}{% endblock %}
+    </header>
+    {% for message in get_flashed_messages() %}
     <div class="flash">{{ message }}</div>
-  {% endfor %}
-  {% block content %}{% endblock %}
+    {% endfor %}
+    {% block content %}{% endblock %}
 </section>
 
+<script src="https://code.jquery.com/jquery-3.5.0.min.js"
+        integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ="
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+        crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+        integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+        crossorigin="anonymous"></script>
+
 <script>
-var loadFile = function(event, img_id) {
-	var image = document.getElementById(img_id);
-	image.src = URL.createObjectURL(event.target.files[0]);
-};
+    let sourceImageCanvas = $("source_img_canvas");
+    let targetImageCanvas = $("target_img_canvas");
+
+    function loadImage(e) {
+        let reader = new FileReader();
+        let canvas = document.getElementById(e.currentTarget.canvasElementId);
+        reader.onload = function (event) {
+            let img = new Image();
+            img.onload = function() {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                canvas.getContext('2d').drawImage(img, 0, 0);
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(e.target.files[0]);
+    }
+
+    let sourceImageLoader = document.getElementById('source_img');
+    sourceImageLoader.addEventListener('change', loadImage, false);
+    sourceImageLoader.canvasElementId = "source_img_canvas";
+
+    let targetImageLoader = document.getElementById('target_img');
+    targetImageLoader.addEventListener('change', loadImage, false);
+    targetImageLoader.canvasElementId = "target_img_canvas";
+
+    let loadFile = function (event, img_id) {
+        // TODO: Check file size
+        let image_url = URL.createObjectURL(event.target.files[0]);
+        let canvas_element = "<canvas id=\"source_img_canvas\", style=\"cursor:crosshair;background:url(" + image_url + ")\"></canvas>"
+        $("#" + img_id).html(canvas_element);
+    };
 </script>

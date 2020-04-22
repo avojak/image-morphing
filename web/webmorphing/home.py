@@ -9,6 +9,7 @@ import base64
 import io
 import os
 import uuid
+import validators
 
 from flask import (
     abort, Blueprint, flash, g, current_app, redirect, render_template, request, session, url_for,
@@ -28,6 +29,7 @@ def home():
 @bp.route('/morph', methods=['POST', 'GET'])
 def morph():
     if request.method == 'POST':
+        print(request.files)
         # Ensure that we've actually received both image files
         if 'source_img' not in request.files or request.files['source_img'].filename == '':
             flash('No source image')
@@ -81,38 +83,50 @@ def morph():
 
 @bp.route('/morph/<req_id>', methods=['GET'])
 def morph_result(req_id):
+    validate_request_id(req_id)
     g.req_id = req_id
     return render_template('results.html')
 
 
 @bp.route('/results/<req_id>/source-image', methods=['GET'])
 def get_source_image(req_id):
+    validate_request_id(req_id)
     return get_image(os.path.join(get_req_dir(req_id), 'source_img'))
 
 
 @bp.route('/results/<req_id>/target-image', methods=['GET'])
 def get_target_image(req_id):
+    validate_request_id(req_id)
     return get_image(os.path.join(get_req_dir(req_id), 'target_img'))
 
 
 @bp.route('/results/<req_id>/point-mapping-image', methods=['GET'])
 def get_point_mapping_image(req_id):
+    validate_request_id(req_id)
     return get_image(os.path.join(get_res_dir(req_id), 'mapping.png'))
 
 
 @bp.route('/results/<req_id>/source-triangulation-image', methods=['GET'])
 def get_source_triangulation_image(req_id):
+    validate_request_id(req_id)
     return get_image(os.path.join(get_res_dir(req_id), 'source_triangulation.png'))
 
 
 @bp.route('/results/<req_id>/target-triangulation-image', methods=['GET'])
 def get_target_triangulation_image(req_id):
+    validate_request_id(req_id)
     return get_image(os.path.join(get_res_dir(req_id), 'target_triangulation.png'))
 
 
 @bp.route('/results/<req_id>/morphing-gif', methods=['GET'])
 def get_morphing_gif(req_id):
+    validate_request_id(req_id)
     return get_image(os.path.join(get_res_dir(req_id), 'morphing.gif'))
+
+
+def validate_request_id(req_id):
+    if not validators.uuid(req_id):
+        abort(400)
 
 
 def get_image(img_path):
@@ -124,8 +138,7 @@ def get_image(img_path):
             img_base64 = base64.b64encode(output.read())
             return jsonify({'data': str(img_base64)})
     else:
-        # TODO: Don't return a 404 - this clogs up the logs
-        abort(404)
+        return jsonify({'data': ''})
 
 
 def get_req_dir(req_id):

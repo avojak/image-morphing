@@ -1,31 +1,29 @@
 <!doctype html>
-<title>Image Morphing</title>
-<script src="https://code.jquery.com/jquery-3.5.0.min.js"
-        integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ="
-        crossorigin="anonymous"></script>
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<head>
+    <!-- TODO: Pull this into a template file -->
+    <title>Image Morphing</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+          integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
 <nav>
   <h1>Image Morphing</h1>
-  <ul>
-    {% if g.req_id %}
-      <li><span>{{ g.req_id }}</span>
-    {% endif %}
-  </ul>
 </nav>
 
 <table>
     <tbody>
         <tr>
-            <td><img src="" id="source_img" alt="Source Image" width="200"/></td>
-            <td><img src="" id="target_img" alt="Target Image" width="200"/></td>
+            <td id="source_img"><div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div></td>
+            <td id="target_img"><div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div></td>
         </tr>
         <tr>
-            <td><img src="" id="point_mapping" alt="Point Mapping" width="200"/></td>
-            <td><img src="" id="source_triangulation" alt="Source Triangulation" width="200"/></td>
-            <td><img src="" id="target_triangulation" alt="Target Triangulation" width="200"/></td>
+            <td id="point_mapping"><div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div></td>
+            <td id="source_triangulation"><div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div></td>
+            <td id="target_triangulation"><div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div></td>
         </tr>
         <tr>
-            <td><img src="" id="morphing_gif" alt="Morphing GIF" width="200"/></td>
+            <td id="morphing_gif"><div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div></td>
         </tr>
     </tbody>
 </table>
@@ -40,33 +38,47 @@
   {% block content %}{% endblock %}
 </section>
 
+<!-- TODO: Pull this into a template file -->
+<script src="https://code.jquery.com/jquery-3.5.0.min.js"
+        integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ="
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+        crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+        integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+        crossorigin="anonymous"></script>
+
 <script>
     function retrieveImage(url, img_tag_id, img_data_type) {
         $.ajax({
             url: url,
             success: function (data) {
                 let byte_string = data['data'];
-                let image_data = byte_string.split('\'')[1];
-                // TODO: Maybe insert the <img> element rather than changing the src attribute. This might fix the issue with the GIF not fully animating
-                $(img_tag_id).attr('src', 'data:' + img_data_type + ';base64,' + image_data);
-            },
-            error: function(xhr, ajaxOptions, thrownError) {
-                if(xhr.status === 404) {
+                if(byte_string === '') {
                     setTimeout(retrieveImage, 1000, url, img_tag_id, img_data_type);
                 } else {
-                    console.log(thrownError);
+                    let image_data = byte_string.split('\'')[1];
+                    let img_src = "data:" + img_data_type + ";base64," + image_data;
+                    let img_tag = "<img src=\"" + img_src + "\" id=\"source_img\" alt=\"Source Image\" width=\"200\"/>";
+                    $(img_tag_id).html(img_tag);
                 }
+            },
+            error: function(xhr, ajaxOptions, thrownError) {
+                // TODO: Display error
+                console.log(thrownError);
             },
         });
     }
 
     $(document).ready(function() {
         // Schedule the first invocations
-        setTimeout(retrieveImage, 1000, "{{ url_for('home.get_source_image', req_id=g.req_id) }}", "#source_img", "image/jpeg");
-        setTimeout(retrieveImage, 1000, "{{ url_for('home.get_target_image', req_id=g.req_id) }}", "#target_img", "image/jpeg");
-        setTimeout(retrieveImage, 1000, "{{ url_for('home.get_point_mapping_image', req_id=g.req_id) }}", "#point_mapping", "image/png");
-        setTimeout(retrieveImage, 1000, "{{ url_for('home.get_source_triangulation_image', req_id=g.req_id) }}", "#source_triangulation", "image/png");
-        setTimeout(retrieveImage, 1000, "{{ url_for('home.get_target_triangulation_image', req_id=g.req_id) }}", "#target_triangulation", "image/png");
-        setTimeout(retrieveImage, 1000, "{{ url_for('home.get_morphing_gif', req_id=g.req_id) }}", "#morphing_gif", "image/gif");
+        let poll_frequency = 1000;
+        setTimeout(retrieveImage, poll_frequency, "{{ url_for('home.get_source_image', req_id=g.req_id) }}", "#source_img", "image/jpeg");
+        setTimeout(retrieveImage, poll_frequency, "{{ url_for('home.get_target_image', req_id=g.req_id) }}", "#target_img", "image/jpeg");
+        setTimeout(retrieveImage, poll_frequency, "{{ url_for('home.get_point_mapping_image', req_id=g.req_id) }}", "#point_mapping", "image/png");
+        setTimeout(retrieveImage, poll_frequency, "{{ url_for('home.get_source_triangulation_image', req_id=g.req_id) }}", "#source_triangulation", "image/png");
+        setTimeout(retrieveImage, poll_frequency, "{{ url_for('home.get_target_triangulation_image', req_id=g.req_id) }}", "#target_triangulation", "image/png");
+        setTimeout(retrieveImage, poll_frequency, "{{ url_for('home.get_morphing_gif', req_id=g.req_id) }}", "#morphing_gif", "image/gif");
     });
 </script>
