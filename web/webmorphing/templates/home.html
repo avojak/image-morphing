@@ -14,7 +14,7 @@
     </ul>
 </nav>
 
-<form method="POST" id="images" action="{{ url_for('home.morph') }}" enctype=multipart/form-data>
+<form method="POST" id="images" action="{{ url_for('home.morph') }}" enctype="multipart/form-data">
     <table>
         <thead>
         <tr>
@@ -26,12 +26,10 @@
         <tr>
             <td>
                 <p><input type="file" accept="image/*" name="source_img" id="source_img"></p>
-<!--                <img id="source_img" src="" style="display: none" hidden />-->
                 <canvas id="source_img_canvas" style="cursor:crosshair"></canvas>
             </td>
             <td>
                 <p><input type="file" accept="image/*" name="target_img" id="target_img"></p>
-<!--                <img id="target_img" src="" style="display: none" hidden />-->
                 <canvas id="target_img_canvas" style="cursor:crosshair"></canvas>
             </td>
         </tr>
@@ -61,9 +59,10 @@
         crossorigin="anonymous"></script>
 
 <script>
-    let sourceImageCanvas = $("source_img_canvas");
-    let targetImageCanvas = $("target_img_canvas");
-
+    /**
+     * Listener function called by the when a 'change' event occurs on the image loaders.
+     * @param e The event
+     */
     function loadImage(e) {
         let reader = new FileReader();
         let canvas = document.getElementById(e.currentTarget.canvasElementId);
@@ -77,20 +76,96 @@
             img.src = event.target.result;
         };
         reader.readAsDataURL(e.target.files[0]);
+        // Reset the selected points when a new image is loaded
+        e.currentTarget.selectedPoints = [];
     }
 
     let sourceImageLoader = document.getElementById('source_img');
     sourceImageLoader.addEventListener('change', loadImage, false);
     sourceImageLoader.canvasElementId = "source_img_canvas";
+    sourceImageLoader.selectedPoints = [];
 
     let targetImageLoader = document.getElementById('target_img');
     targetImageLoader.addEventListener('change', loadImage, false);
     targetImageLoader.canvasElementId = "target_img_canvas";
+    targetImageLoader.selectedPoints = [];
 
-    let loadFile = function (event, img_id) {
-        // TODO: Check file size
-        let image_url = URL.createObjectURL(event.target.files[0]);
-        let canvas_element = "<canvas id=\"source_img_canvas\", style=\"cursor:crosshair;background:url(" + image_url + ")\"></canvas>"
-        $("#" + img_id).html(canvas_element);
-    };
+    /**
+     * Listener function call when a click event occurs on the canvas.
+     * @param e The event
+     * @param canvas The canvas
+     * @param points The array of points which have been clicked on the canvas
+     */
+    function onPointClicked(e, canvas, points) {
+        // Get the coordinates of the click on the canvas
+        let rect = canvas.getBoundingClientRect();
+        let x = e.clientX - rect.left;
+        let y = e.clientY - rect.top;
+
+        // Add the coordinates to our list of points
+        points.push([x,y]);
+        console.log(points);
+
+        // Draw the coordinates on the canvas
+        let pointSize = 3;
+        let ctx = canvas.getContext('2d');
+        ctx.fillStyle = 'red';
+        ctx.font = 'bold 16px Arial';
+        ctx.fillText(points.length, x+5, y); // +5 to add some space between the point and the number
+        ctx.beginPath();
+        ctx.arc(x, y, pointSize, 0, Math.PI * 2, true);
+        ctx.fill();
+
+        // TODO: Add some check as to whether there are equal numbers of points selected
+    }
+
+    $('#source_img_canvas').click(function(e) {
+        onPointClicked(e, document.getElementById('source_img_canvas'), sourceImageLoader.selectedPoints);
+    });
+    $('#target_img_canvas').click(function(e) {
+        onPointClicked(e, document.getElementById('target_img_canvas'), targetImageLoader.selectedPoints);
+    });
+
+    $("#images").submit(function(e) {
+       $("<input />").attr('type', 'hidden')
+                     .attr('name', 'source_points')
+                     .attr('value', JSON.stringify(sourceImageLoader.selectedPoints))
+                     .appendTo('#images');
+       $("<input />").attr('type', 'hidden')
+                     .attr('name', 'target_points')
+                     .attr('value', JSON.stringify(targetImageLoader.selectedPoints))
+                     .appendTo('#images');
+       return true;
+    });
+
+    // document.getElementById('images').addEventListener('submit', function(e) {
+    //     let formData = new FormData();
+    //     formData.append('source_img', $('#source_img').files[0]);
+    //     formData.append('target_img', $('#target_img').files[0]);
+    //     formData.append('source_points', sourceImageLoader.selectedPoints);
+    //     formData.append('target_points', targetImageLoader.selectedPoints);
+    //
+    //     let req = new XMLHttpRequest();
+    //     req.open('POST', "{{ url_for('home.morph') }}", true);
+    //     req.send(formData);
+    //     e.preventDefault();
+    // });
+    // $('#images').submit(function(e) {
+    //     let formData = new FormData();
+    //     formData.append('source_img', $('#source_img').files[0]);
+    //     formData.append('target_img', $('#target_img').files[0]);
+    //     formData.append('source_points', sourceImageLoader.selectedPoints);
+    //     formData.append('target_points', targetImageLoader.selectedPoints);
+    //     $.ajax({
+    //         url: "{{ url_for('home.morph') }}",
+    //         data: formData,
+    //         processData: false,
+    //         contentType: false,
+    //         type: 'POST',
+    //         success: function() {
+    //             alert('success');
+    //         }
+    //     });
+    //     e.preventDefault();
+    // });
 </script>
