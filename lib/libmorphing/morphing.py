@@ -15,11 +15,13 @@ from cv2 import cv2
 from multiprocessing import Pool
 from scipy.spatial import Delaunay
 
+logger = logging.getLogger('libmorphing')
+
 
 class ImageMorph:
 
     def __init__(self, source_img_path: str, target_img_path: str, source_points: list, target_points: list,
-                 output_dir: str) -> None:
+                 output_dir: str, gif_duration: int, gif_fps: int) -> None:
         """
         Create an animated GIF which morphs the source image into the target image.
 
@@ -52,13 +54,13 @@ class ImageMorph:
 
         # Define the configuration
         self.pool_size = os.cpu_count()
-        self.gif_duration = 3  # in seconds
-        self.gif_fps = 10
-        logging.info('Process pool size: {}'.format(self.pool_size))
-        logging.info('GIF duration: {}'.format(self.gif_duration))
-        logging.info('GIF FPS: {}'.format(self.gif_fps))
-        logging.info('Source image: {} ({}x{})'.format(source_img_path, W, H))
-        logging.info('Target image: {} ({}x{})'.format(target_img_path, W, H))
+        self.gif_duration = gif_duration  # 3  # in seconds
+        self.gif_fps = gif_fps  # 10
+        logger.info('Process pool size: {}'.format(self.pool_size))
+        logger.info('GIF duration: {}'.format(self.gif_duration))
+        logger.info('GIF FPS: {}'.format(self.gif_fps))
+        logger.info('Source image: {} ({}x{})'.format(source_img_path, W, H))
+        logger.info('Target image: {} ({}x{})'.format(target_img_path, W, H))
 
         self._morph()
 
@@ -66,17 +68,17 @@ class ImageMorph:
         """
         Performs the morphing.
         """
-        logging.debug('Writing mapping image...')
+        logger.debug('Writing mapping image...')
         io.write_mapping_img(self.source_img, self.target_img, self.source_points, self.target_points,
                              os.path.join(self.output_dir, 'mapping.png'))
-        logging.debug('Creating Delaunay triangulation...')
+        logger.debug('Creating Delaunay triangulation...')
         triangulation = Delaunay(self.source_points)
 
         # From this point on, the points must be a NumPy array
         self.source_points = np.array(self.source_points)
         self.target_points = np.array(self.target_points)
 
-        logging.debug('Writing triangulation images...')
+        logger.debug('Writing triangulation images...')
         io.write_triangulation_img(triangulation, self.source_img, self.source_points,
                                    os.path.join(self.output_dir, 'source_triangulation.png'))
         io.write_triangulation_img(triangulation, self.target_img, self.target_points,
@@ -97,10 +99,10 @@ class ImageMorph:
             for res in results:
                 res.get(timeout=None)
 
-            frame_dir = os.path.join(self.output_dir, 'frames')
-            filename = os.path.join(self.output_dir, 'morphing.gif')
-            logging.debug('Creating GIF...')
-            io.write_gif(frame_dir, filename)
+        frame_dir = os.path.join(self.output_dir, 'frames')
+        filename = os.path.join(self.output_dir, 'morphing.gif')
+        logger.debug('Creating GIF...')
+        io.write_gif(frame_dir, filename, self.gif_fps)
 
     def _compute_frame(self, triangulation, t, shape):
         """
@@ -163,4 +165,4 @@ class ImageMorph:
     def _process_func(self, triangulation, t, frame_num, shape):
         frame = self._compute_frame(triangulation, t, shape)
         io.write_frame(frame, frame_num, os.path.join(self.output_dir, 'frames'))
-        logging.debug('Created frame {}'.format(str(frame_num)))
+        logger.debug('Created frame {}'.format(str(frame_num)))

@@ -57,7 +57,7 @@ def write_frame(frame, frame_number, output_dir):
     cv2.imwrite(filename, frame)
 
 
-def write_gif(frame_dir, filename):
+def write_gif(frame_dir, filename, fps):
     """
     Creates an animated GIF from the frame files using ImageMagick.
     """
@@ -66,7 +66,8 @@ def write_gif(frame_dir, filename):
     with open('{}/frame_list.txt'.format(frame_dir), 'w') as f:
         for frame in frames:
             f.write('{}\n'.format(frame))
-    process = Popen(['convert', '@{}/frame_list.txt'.format(frame_dir), filename], stdout=PIPE, stderr=PIPE)
+    process = Popen(['convert', '-delay', str(int(100/fps)), '@{}/frame_list.txt'.format(frame_dir), filename],
+                    stdout=PIPE, stderr=PIPE)
     stdout, stderr = process.communicate()
     if process.returncode != 0:
         print(stderr.decode('utf-8'))

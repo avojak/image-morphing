@@ -28,6 +28,10 @@
     </tbody>
 </table>
 
+<a href="{{ url_for('home.morph') }}" id="do_it_again" hidden>
+   <input type="button" value="Do it again!" />
+</a>
+
 <section class="content">
   <header>
     {% block header %}{% endblock %}
@@ -50,18 +54,22 @@
         crossorigin="anonymous"></script>
 
 <script>
-    function retrieveImage(url, img_tag_id, img_data_type) {
+    function retrieveImage(url, wrapper_tag_id, img_data_type) {
         $.ajax({
             url: url,
             success: function (data) {
                 let byte_string = data['data'];
-                if(byte_string === '') {
-                    setTimeout(retrieveImage, 1000, url, img_tag_id, img_data_type);
+                if (byte_string === '') {
+                    setTimeout(retrieveImage, 1000, url, wrapper_tag_id, img_data_type);
                 } else {
                     let image_data = byte_string.split('\'')[1];
                     let img_src = "data:" + img_data_type + ";base64," + image_data;
                     let img_tag = "<img src=\"" + img_src + "\" id=\"source_img\" alt=\"Source Image\" width=\"200\"/>";
-                    $(img_tag_id).html(img_tag);
+                    $(wrapper_tag_id).empty();
+                    $(wrapper_tag_id).append(img_tag);
+                    if ($(".spinner-border").length === 0) {
+                        document.getElementById("do_it_again").hidden=false
+                    }
                 }
             },
             error: function(xhr, ajaxOptions, thrownError) {

@@ -19,4 +19,4 @@ def test_1():
                      [233.0, 306.0], [240.0, 8.0], [227.0, 458.0]]
     target_points = [[162.0, 209.0], [305.0, 209.0], [28.0, 15.0], [450.0, 18.0], [198.0, 346.0], [270.0, 345.0],
                      [238.0, 293.0], [233.0, 59.0], [237.0, 382.0]]
-    ImageMorph(source_img_path, target_img_path, source_points, target_points, output_dir)
+    ImageMorph(source_img_path, target_img_path, source_points, target_points, output_dir, gif_duration=3, gif_fps=10)
