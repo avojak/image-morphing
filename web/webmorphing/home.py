@@ -22,7 +22,6 @@ bp = Blueprint('home', __name__, url_prefix='/')
 
 @bp.route('/', methods=['GET'])
 def home():
-    g.user = 'Andrew'
     return render_template('home.html')
 
 
@@ -30,18 +29,18 @@ def home():
 def morph():
     if request.method == 'POST':
         # Ensure that we've actually received both image files
-        if 'source_img' not in request.files or request.files['source_img'].filename == '':
+        if 'source-img' not in request.files or request.files['source-img'].filename == '':
             flash('No source image')
             return redirect(request.url)
-        if 'target_img' not in request.files or request.files['target_img'].filename == '':
+        if 'target-img' not in request.files or request.files['target-img'].filename == '':
             flash('No target image')
             return redirect(request.url)
 
         # Ensure that the received files are allowed
-        if not allowed_file(request.files['source_img'].filename):
+        if not allowed_file(request.files['source-img'].filename):
             flash('Source image file type is not allowed')
             return redirect(request.url)
-        if not allowed_file(request.files['target_img'].filename):
+        if not allowed_file(request.files['target-img'].filename):
             flash('Target image file type is not allowed')
             return redirect(request.url)
 
@@ -76,8 +75,8 @@ def morph():
         os.makedirs(res_dir)
 
         # Extract the image files from the request and save them in the upload folder
-        source_img = request.files['source_img']
-        target_img = request.files['target_img']
+        source_img = request.files['source-img']
+        target_img = request.files['target-img']
         source_img_path = os.path.join(req_dir, 'source_img')
         target_img_path = os.path.join(req_dir, 'target_img')
         source_img.save(source_img_path)
