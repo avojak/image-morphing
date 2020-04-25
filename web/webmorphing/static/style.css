@@ -14,6 +14,10 @@ canvas.img-canvas {
     margin: 20px;
 }
 
+.card-top {
+    text-align: center;
+}
+
 div.custom-file {
     margin-bottom: 20px !important;
 }
@@ -22,4 +26,12 @@ div.custom-file {
 input[type=file], /* FF, IE7+, chrome (except button) */
 input[type=file]::-webkit-file-upload-button { /* chromes and blink button */
     cursor: pointer;
+}
+
+.spinner-border {
+    margin-top: 20px;
+}
+
+.result-card {
+    padding: 20px;
 }

@@ -1,46 +1,92 @@
 <!doctype html>
 <head>
-    <!-- TODO: Pull this into a template file -->
     <title>Image Morphing</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
           integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link rel="stylesheet" href="{{ url_for('static', filename='album.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://kit.fontawesome.com/437574d4b7.js" crossorigin="anonymous"></script>
 </head>
 
-<nav>
-  <h1>Image Morphing</h1>
-</nav>
+<body>
 
-<table>
-    <tbody>
-        <tr>
-            <td id="source_img"><div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div></td>
-            <td id="target_img"><div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div></td>
-        </tr>
-        <tr>
-            <td id="point_mapping"><div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div></td>
-            <td id="source_triangulation"><div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div></td>
-            <td id="target_triangulation"><div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div></td>
-        </tr>
-        <tr>
-            <td id="morphing_gif"><div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div></td>
-        </tr>
-    </tbody>
-</table>
+<main>
+    <section class="jumbotron text-center">
+        <div class="container">
+            <h1 class="jumbotron-heading">Let's see the results!</h1>
+<!--            <p class="lead text-muted">Choose two images, select corresponding points, and create an animated GIF of the morphing!</p>-->
+        </div>
+    </section>
+    <div class="album py-5 bg-light">
+        <div class="container">
+            <div class="card-deck justify-content-center">
+                <div class="card box-shadow result-card">
+                    <div class="card-top" id="point-mapping">
+                        <div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">Point Mapping</h5>
+                        <p class="card-text">Visualization of corresponding points in the source and target images.</p>
+                    </div>
+                </div>
+                <div class="card box-shadow result-card">
+                    <div class="card-top" id="source-triangulation">
+                        <div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">Source Triangulation</h5>
+                        <p class="card-text">Visualization of the <a
+                                href="https://en.wikipedia.org/wiki/Delaunay_triangulation">Delaunay triangulation</a>
+                            using the selected points on the source image.</p>
+                    </div>
+                </div>
+                <div class="card box-shadow result-card">
+                    <div class="card-top" id="target-triangulation">
+                        <div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">Target Triangulation</h5>
+                        <p class="card-text">Visualization of the <a
+                                href="https://en.wikipedia.org/wiki/Delaunay_triangulation">Delaunay triangulation</a>
+                            using the selected points on the source image, but applied to the corresponding points on
+                            the target image.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-deck justify-content-center">
+                <div class="card invisible"></div>
+                <div class="card box-shadow result-card">
+                    <div class="card-top" id="morphing-gif">
+                        <div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">Morphing GIF</h5>
+                    </div>
+                </div>
+                <div class="card invisible"></div>
+            </div>
+            <div class="row justify-content-center" style="margin-top: 40px;">
+                <a href="{{ url_for('home.morph') }}" id="do_it_again" hidden>
+                    <input type="button" class="btn btn-primary" value="Do it again!"/>
+                </a>
+                <!--                        <button type="submit" class="btn btn-primary" id="submit-button" disabled>Morph!</button>-->
+            </div>
+        </div>
+    </div>
 
-<a href="{{ url_for('home.morph') }}" id="do_it_again" hidden>
-   <input type="button" value="Do it again!" />
-</a>
+</main>
 
-<section class="content">
-  <header>
-    {% block header %}{% endblock %}
-  </header>
-  {% for message in get_flashed_messages() %}
-    <div class="flash">{{ message }}</div>
-  {% endfor %}
-  {% block content %}{% endblock %}
-</section>
+</body>
+
+<footer>
+    <div class="row justify-content-center">
+        <small class="text-muted">Andrew Vojak (vojak1)</small>
+    </div>
+    <div class="row justify-content-center">
+        <small class="text-muted">Created for CS 445 Spring 2020 Final Project at the University of Illinois at
+            Urbana-Champaign</small>
+    </div>
+</footer>
 
 <!-- TODO: Pull this into a template file -->
 <script src="https://code.jquery.com/jquery-3.5.0.min.js"
@@ -54,7 +100,7 @@
         crossorigin="anonymous"></script>
 
 <script>
-    function retrieveImage(url, wrapper_tag_id, img_data_type) {
+    function retrieveImage(url, wrapper_tag_id, img_data_type, filename) {
         $.ajax({
             url: url,
             success: function (data) {
@@ -64,29 +110,33 @@
                 } else {
                     let image_data = byte_string.split('\'')[1];
                     let img_src = "data:" + img_data_type + ";base64," + image_data;
-                    let img_tag = "<img src=\"" + img_src + "\" id=\"source_img\" alt=\"Source Image\" width=\"200\"/>";
+                    let img_tag = "<img src=\"" + img_src + "\" id=\"source_img\" alt=\"Source Image\" width=\"300\"/>";
                     $(wrapper_tag_id).empty();
                     $(wrapper_tag_id).append(img_tag);
+                    let download_tag = "<div class=\"card-footer\">\n" +
+                        "    <small class=\"text-muted\"><a href=\"" + img_src + "\" download=\"" + filename + "\"><i class=\"fas fa-file-download\"></i> Download</a></small>\n" +
+                        "</div>";
+                    $(wrapper_tag_id).parent().append(download_tag);
                     if ($(".spinner-border").length === 0) {
-                        document.getElementById("do_it_again").hidden=false
+                        document.getElementById("do_it_again").hidden = false
                     }
                 }
             },
-            error: function(xhr, ajaxOptions, thrownError) {
+            error: function (xhr, ajaxOptions, thrownError) {
                 // TODO: Display error
                 console.log(thrownError);
             },
         });
     }
 
-    $(document).ready(function() {
+    $(document).ready(function () {
         // Schedule the first invocations
         let poll_frequency = 1000;
-        setTimeout(retrieveImage, poll_frequency, "{{ url_for('home.get_source_image', req_id=g.req_id) }}", "#source_img", "image/jpeg");
-        setTimeout(retrieveImage, poll_frequency, "{{ url_for('home.get_target_image', req_id=g.req_id) }}", "#target_img", "image/jpeg");
-        setTimeout(retrieveImage, poll_frequency, "{{ url_for('home.get_point_mapping_image', req_id=g.req_id) }}", "#point_mapping", "image/png");
-        setTimeout(retrieveImage, poll_frequency, "{{ url_for('home.get_source_triangulation_image', req_id=g.req_id) }}", "#source_triangulation", "image/png");
-        setTimeout(retrieveImage, poll_frequency, "{{ url_for('home.get_target_triangulation_image', req_id=g.req_id) }}", "#target_triangulation", "image/png");
-        setTimeout(retrieveImage, poll_frequency, "{{ url_for('home.get_morphing_gif', req_id=g.req_id) }}", "#morphing_gif", "image/gif");
+        // setTimeout(retrieveImage, poll_frequency, "{{ url_for('home.get_source_image', req_id=g.req_id) }}", "#source-img", "image/jpeg");
+        // setTimeout(retrieveImage, poll_frequency, "{{ url_for('home.get_target_image', req_id=g.req_id) }}", "#target-img", "image/jpeg");
+        setTimeout(retrieveImage, poll_frequency, "{{ url_for('home.get_point_mapping_image', req_id=g.req_id) }}", "#point-mapping", "image/png", "point-mapping.png");
+        setTimeout(retrieveImage, poll_frequency, "{{ url_for('home.get_source_triangulation_image', req_id=g.req_id) }}", "#source-triangulation", "image/png", "source-triangulation.png");
+        setTimeout(retrieveImage, poll_frequency, "{{ url_for('home.get_target_triangulation_image', req_id=g.req_id) }}", "#target-triangulation", "image/png", "target-triangulation.png");
+        setTimeout(retrieveImage, poll_frequency, "{{ url_for('home.get_morphing_gif', req_id=g.req_id) }}", "#morphing-gif", "image/gif", "morphing.gif");
     });
 </script>

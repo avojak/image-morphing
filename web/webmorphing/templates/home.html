@@ -31,7 +31,7 @@
             <div class="album py-5 bg-light">
                 <div class="container">
                     <div class="row justify-content-center">
-                        <div class="card box-shadow" id="source-img-card">
+                        <div class="card box-shadow">
                             <div class="card-top">
                                 <div style="position: relative;">
                                     <canvas class="img-canvas" id="source-img-canvas" style="position: relative; left: 0; top: 0; z-index: 0;"></canvas>
@@ -57,7 +57,7 @@
                             </div>
                         </div>
                         <div class="card box-shadow">
-                            <div class="card-img-top">
+                            <div class="card-top">
                                 <div style="position: relative;">
                                     <canvas class="img-canvas" id="target-img-canvas" style="position: relative; left: 0; top: 0; z-index: 0;"></canvas>
                                     <canvas class="img-canvas" id="target-pts-canvas" style="position: absolute; left: 0; top: 0; z-index: 1;"></canvas>
@@ -163,7 +163,6 @@
     sourceImageLoader.imgCanvasElementId = "source-img-canvas";
     sourceImageLoader.ptsCanvasElementId = "source-pts-canvas";
     sourceImageLoader.placeholderElementId = "source-img-placeholder";
-    sourceImageLoader.cardElementId = "source-img-card";
     sourceImageLoader.pointCountElementId = "source-point-count";
     sourceImageLoader.selectedPoints = [];
 
@@ -172,7 +171,6 @@
     targetImageLoader.imgCanvasElementId = "target-img-canvas";
     targetImageLoader.ptsCanvasElementId = "target-pts-canvas";
     targetImageLoader.placeholderElementId = "target-img-placeholder";
-    targetImageLoader.cardElementId = "target-img-card";
     targetImageLoader.pointCountElementId = "target-point-count";
     targetImageLoader.selectedPoints = [];
 
