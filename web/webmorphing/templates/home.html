@@ -3,72 +3,99 @@
     <title>Image Morphing</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
           integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='album.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://kit.fontawesome.com/437574d4b7.js" crossorigin="anonymous"></script>
 </head>
 
 <body>
 
     <main>
+        <section class="content">
+            {% for message in get_flashed_messages() %}
+            <div class="flash alert alert-danger alert-dismissible fade show" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                {{ message }}
+            </div>
+            {% endfor %}
+        </section>
         <section class="jumbotron text-center">
             <div class="container">
                 <h1 class="jumbotron-heading">Image Morphing</h1>
-                <p class="lead text-muted">TODO Some summary</p>
+                <p class="lead text-muted">Choose two images, select corresponding points, and create an animated GIF of the morphing!</p>
             </div>
         </section>
         <form method="POST" id="images" action="{{ url_for('home.morph') }}" enctype="multipart/form-data">
             <div class="album py-5 bg-light">
                 <div class="container">
                     <div class="row justify-content-center">
-                        <div class="card box-shadow" id="source-img-card" style="margin: 20px;">
+                        <div class="card box-shadow" id="source-img-card">
                             <div class="card-top">
-                                <canvas id="source-img-canvas" style="cursor:crosshair; margin: 20px 20px 0 20px;"></canvas>
+                                <div style="position: relative;">
+                                    <canvas class="img-canvas" id="source-img-canvas" style="position: relative; left: 0; top: 0; z-index: 0;"></canvas>
+                                    <canvas class="img-canvas" id="source-pts-canvas" style="position: absolute; left: 0; top: 0; z-index: 1;"></canvas>
+                                </div>
+                                <div class="img-canvas-placeholder justify-content-center" id="source-img-placeholder">
+                                    <i class="far fa-file-image fa-7x text-muted"></i>
+                                </div>
                             </div>
-                            <div class="card-body">
-                                <div class="input-group">
-                                    <div class="custom-file" style="margin-bottom: 20px;">
+                            <div class="card-body d-flex flex-column">
+                                <div class="input-group mt-auto">
+                                    <div class="custom-file">
                                         <input type="file" class="custom-file-input" id="source-img-input" name="source-img">
                                         <label class="custom-file-label" for="source-img-input">Choose source image</label>
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div class="btn-group">
-                                        <button type="button" class="btn btn-sm btn-outline-secondary">Clear Points</button>
+                                        <button id="clear-source-points-button" type="button" class="btn btn-sm btn-outline-secondary">Clear points</button>
                                     </div>
                                     <small class="text-muted"><span id="source-point-count">0</span> points</small>
                                 </div>
                             </div>
                         </div>
-                        <div class="card box-shadow" style="margin: 20px;">
+                        <div class="card box-shadow">
                             <div class="card-img-top">
-                                <canvas id="target-img-canvas" style="cursor:crosshair; margin: 20px 20px 0 20px;"></canvas>
+                                <div style="position: relative;">
+                                    <canvas class="img-canvas" id="target-img-canvas" style="position: relative; left: 0; top: 0; z-index: 0;"></canvas>
+                                    <canvas class="img-canvas" id="target-pts-canvas" style="position: absolute; left: 0; top: 0; z-index: 1;"></canvas>
+                                </div>
+                                <div class="img-canvas-placeholder justify-content-center" id="target-img-placeholder">
+                                    <i class="far fa-file-image fa-7x text-muted"></i>
+                                </div>
                             </div>
-                            <div class="card-body">
-                                <div class="input-group">
-                                    <div class="custom-file" style="margin-bottom: 20px;">
+                            <div class="card-body d-flex flex-column">
+                                <div class="input-group mt-auto">
+                                    <div class="custom-file">
                                         <input type="file" class="custom-file-input" id="target-img-input" name="target-img">
                                         <label class="custom-file-label" for="target-img-input">Choose target image</label>
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div class="btn-group">
-                                        <button type="button" class="btn btn-sm btn-outline-secondary">Clear Points</button>
+                                        <button id="clear-target-points-button" type="button" class="btn btn-sm btn-outline-secondary">Clear points</button>
                                     </div>
                                     <small class="text-muted"><span id="target-point-count">0</span> points</small>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="row justify-content-center">
-                        <p>
-                            <label for="gif_duration">GIF duration (between 1 and 5 seconds):</label>
-                            <input type="number" id="gif_duration" name="gif_duration" min="1" max="5" value="3">
-                        </p>
-                        <p>
-                            <label for="gif_fps">GIF FPS (between 1 and 10):</label>
-                            <input type="number" id="gif_fps" name="gif_fps" min="1" max="10" value="10">
-                        </p>
-                        <p><button type="submit" form="images">Go!</button></p>
+                    <div class="container col-md-7">
+                        <div class="form-group row form-inline">
+                            <label class="col-form-label justify-content-start col-sm-4" for="gif_duration">Duration:</label>
+                            <input type="number" class="form-control col-sm-2" id="gif_duration" name="gif_duration" min="1" max="5" value="3">
+                            <small id="gifDurationInlineHelp" class="text-muted col-sm-6">Must be between 1 and 5 seconds.</small>
+                        </div>
+                        <div class="form-group row form-inline">
+                            <label class="col-form-label justify-content-start col-sm-4" for="gif_fps">Frames per second:</label>
+                            <input type="number" class="form-control col-sm-2" id="gif_fps" name="gif_fps" min="1" max="10" value="10">
+                            <small id="gifFpsInlineHelp" class="text-muted col-sm-6">Must be between 1 and 10.</small>
+                        </div>
+                        <div class="form-group row justify-content-center">
+                            <button type="submit" class="btn btn-primary" id="submit-button" disabled>Morph!</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -77,15 +104,14 @@
 
 </body>
 
-<section class="content">
-    <header>
-        {% block header %}{% endblock %}
-    </header>
-    {% for message in get_flashed_messages() %}
-    <div class="flash">{{ message }}</div>
-    {% endfor %}
-    {% block content %}{% endblock %}
-</section>
+<footer>
+    <div class="row justify-content-center">
+        <small class="text-muted">Andrew Vojak (vojak1)</small>
+    </div>
+    <div class="row justify-content-center">
+        <small class="text-muted">Created for CS 445 Spring 2020 Final Project at the University of Illinois at Urbana-Champaign</small>
+    </div>
+</footer>
 
 <script src="https://code.jquery.com/jquery-3.5.0.min.js"
         integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ="
@@ -104,31 +130,50 @@
      */
     function loadImage(e) {
         let reader = new FileReader();
-        let canvas = document.getElementById(e.currentTarget.canvasElementId);
+        let imgCanvas = document.getElementById(e.currentTarget.imgCanvasElementId);
+        let ptsCanvas = document.getElementById(e.currentTarget.ptsCanvasElementId);
+
+        // Toggle visibility of the placeholder and canvas elements
+        $("#"+e.currentTarget.imgCanvasElementId).show();
+        $("#"+e.currentTarget.ptsCanvasElementId).show();
+        $("#"+e.currentTarget.placeholderElementId).hide();
+
         reader.onload = function (event) {
             let img = new Image();
             img.onload = function() {
-                canvas.width = img.width;
-                canvas.height = img.height;
-                canvas.getContext('2d').drawImage(img, 0, 0);
+                imgCanvas.width = img.width;
+                imgCanvas.height = img.height;
+                ptsCanvas.width = img.width;
+                ptsCanvas.height = img.height;
+                imgCanvas.getContext('2d').drawImage(img, 0, 0);
             };
             img.src = event.target.result;
         };
         reader.readAsDataURL(e.target.files[0]);
         // Reset the selected points when a new image is loaded
         e.currentTarget.selectedPoints = [];
+        $('#'+e.currentTarget.pointCountElementId).html(0);
+
+        // Validate the form
+        validateForm();
     }
 
     let sourceImageLoader = document.getElementById('source-img-input');
     sourceImageLoader.addEventListener('change', loadImage, false);
-    sourceImageLoader.canvasElementId = "source-img-canvas";
+    sourceImageLoader.imgCanvasElementId = "source-img-canvas";
+    sourceImageLoader.ptsCanvasElementId = "source-pts-canvas";
+    sourceImageLoader.placeholderElementId = "source-img-placeholder";
     sourceImageLoader.cardElementId = "source-img-card";
+    sourceImageLoader.pointCountElementId = "source-point-count";
     sourceImageLoader.selectedPoints = [];
 
     let targetImageLoader = document.getElementById('target-img-input');
     targetImageLoader.addEventListener('change', loadImage, false);
-    targetImageLoader.canvasElementId = "target-img-canvas";
+    targetImageLoader.imgCanvasElementId = "target-img-canvas";
+    targetImageLoader.ptsCanvasElementId = "target-pts-canvas";
+    targetImageLoader.placeholderElementId = "target-img-placeholder";
     targetImageLoader.cardElementId = "target-img-card";
+    targetImageLoader.pointCountElementId = "target-point-count";
     targetImageLoader.selectedPoints = [];
 
     $('#source-img-input').change(function(e) {
@@ -165,27 +210,103 @@
         ctx.arc(x, y, pointSize, 0, Math.PI * 2, true);
         ctx.fill();
 
-        // TODO: Add some check as to whether there are equal numbers of points selected
+        // Validate the form
+        validateForm();
     }
 
-    $('#source-img-canvas').click(function(e) {
-        onPointClicked(e, document.getElementById('source-img-canvas'), sourceImageLoader.selectedPoints);
+    /**
+     * Handle points selected on the point canvases.
+     */
+    $('#source-pts-canvas').click(function(e) {
+        onPointClicked(e, document.getElementById('source-pts-canvas'), sourceImageLoader.selectedPoints);
         $('#source-point-count').html(sourceImageLoader.selectedPoints.length);
     });
-    $('#target-img-canvas').click(function(e) {
-        onPointClicked(e, document.getElementById('target-img-canvas'), targetImageLoader.selectedPoints);
+    $('#target-pts-canvas').click(function(e) {
+        onPointClicked(e, document.getElementById('target-pts-canvas'), targetImageLoader.selectedPoints);
         $('#target-point-count').html(targetImageLoader.selectedPoints.length);
     });
 
+    /**
+     * Handle clicks to the "Clear Points" buttons.
+     */
+    $('#clear-source-points-button').click(function(e) {
+        let canvas = document.getElementById('source-pts-canvas');
+        canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+        sourceImageLoader.selectedPoints = [];
+        $('#source-point-count').html(0);
+        // Validate the form
+        validateForm();
+    });
+    $('#clear-target-points-button').click(function(e) {
+        let canvas = document.getElementById('target-pts-canvas');
+        canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+        targetImageLoader.selectedPoints = [];
+        $('#target-point-count').html(0);
+        // Validate the form
+        validateForm();
+    });
+
+    /**
+     * Form validation
+     */
+    function validateForm() {
+        let isValid = true;
+        // Verify images exist
+        if (document.getElementById('source-img-input').files.length === 0) {
+            console.log('Form invalid: no source image');
+            isValid = false;
+        }
+        if (document.getElementById('target-img-input').files.length === 0) {
+            console.log('Form invalid: no target image');
+            isValid = false;
+        }
+        // Verify non-zero points
+        if (sourceImageLoader.selectedPoints.length === 0) {
+            console.log('Form invalid: no source points');
+            isValid = false;
+        }
+        if (targetImageLoader.selectedPoints.length === 0) {
+            console.log('Form invalid: no target points');
+            isValid = false;
+        }
+        // Verify equal numbers of points
+        if (sourceImageLoader.selectedPoints.length !== targetImageLoader.selectedPoints.length) {
+            console.log('Form invalid: mismatching number of points [source: '+sourceImageLoader.selectedPoints.length+', target: '+targetImageLoader.selectedPoints.length+']');
+            isValid = false;
+        }
+        // Verify duration
+        let duration = $('#gif_duration').val();
+        if (duration < 1 || duration > 5) {
+            console.log('Form invalid: duration out of bounds ['+duration+']');
+            isValid = false;
+        }
+        // Verify FPS
+        let fps = $('#gif_fps').val();
+        if (fps < 1 || fps > 10) {
+            console.log('Form invalid: FPS out of bounds ['+fps+']');
+            isValid = false;
+        }
+
+        if (isValid) {
+            $("#submit-button").prop('disabled', false);
+        } else {
+            $("#submit-button").prop('disabled', true);
+        }
+
+        return isValid;
+    }
+
     $("#images").submit(function(e) {
-       $("<input />").attr('type', 'hidden')
+        // TODO: Add pre-checks for valid input
+
+        $("<input />").attr('type', 'hidden')
                      .attr('name', 'source_points')
                      .attr('value', JSON.stringify(sourceImageLoader.selectedPoints))
                      .appendTo('#images');
-       $("<input />").attr('type', 'hidden')
+        $("<input />").attr('type', 'hidden')
                      .attr('name', 'target_points')
                      .attr('value', JSON.stringify(targetImageLoader.selectedPoints))
                      .appendTo('#images');
-       return true;
+        return true;
     });
 </script>

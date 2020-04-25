@@ -1,0 +1,25 @@
+canvas.img-canvas {
+    cursor:crosshair;
+    margin: 20px 20px 0 20px;
+    display: none;
+}
+
+.img-canvas-placeholder {
+    margin: 20px 20px 0 20px;
+    padding: 10px 10px 10px 10px;
+    text-align: center;
+}
+
+.card {
+    margin: 20px;
+}
+
+div.custom-file {
+    margin-bottom: 20px !important;
+}
+
+/* Fix the cursor for the file input field (https://stackoverflow.com/a/23860302/3300205) */
+input[type=file], /* FF, IE7+, chrome (except button) */
+input[type=file]::-webkit-file-upload-button { /* chromes and blink button */
+    cursor: pointer;
+}
