@@ -2,7 +2,6 @@ matplotlib==3.2.1
 numpy==1.18.3
 opencv-python==4.2.0.34
 scipy==1.4.1
-boto3==1.12.43
 flask==1.1.2
 Werkzeug==1.0.1
 waitress==1.4.3

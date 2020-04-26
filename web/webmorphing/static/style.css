@@ -33,5 +33,10 @@ input[type=file]::-webkit-file-upload-button { /* chromes and blink button */
 }
 
 .result-card {
-    padding: 20px;
+    padding-top: 20px;
+}
+
+/* Fix extra space on the right */
+html, body {
+    overflow-x: hidden;
 }

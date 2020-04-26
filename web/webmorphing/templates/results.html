@@ -11,6 +11,14 @@
 <body>
 
 <main>
+    <section class="content">
+        <div class="flash alert alert-danger alert-dismissible fade show" role="alert" id="error-alert" hidden>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            Failed to contact server.
+        </div>
+    </section>
     <section class="jumbotron text-center">
         <div class="container">
             <h1 class="jumbotron-heading">Let's see the results!</h1>
@@ -114,7 +122,7 @@
                     $(wrapper_tag_id).empty();
                     $(wrapper_tag_id).append(img_tag);
                     let download_tag = "<div class=\"card-footer\">\n" +
-                        "    <small class=\"text-muted\"><a href=\"" + img_src + "\" download=\"" + filename + "\"><i class=\"fas fa-file-download\"></i> Download</a></small>\n" +
+                        "    <small class=\"text-muted\"><a href=\"" + img_src + "\" download=\"" + filename + "\"><i class=\"fas fa-file-download\"></i> Download image</a></small>\n" +
                         "</div>";
                     $(wrapper_tag_id).parent().append(download_tag);
                     if ($(".spinner-border").length === 0) {
@@ -125,6 +133,7 @@
             error: function (xhr, ajaxOptions, thrownError) {
                 // TODO: Display error
                 console.log(thrownError);
+                document.getElementById("error-alert").hidden = false
             },
         });
     }

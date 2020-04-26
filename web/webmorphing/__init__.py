@@ -11,7 +11,8 @@ def create_app(test_config=None):
         SECRET_KEY='dev',
         UPLOAD_FOLDER='/tmp/webmorphing/uploads/',
         RESULT_FOLDER='/tmp/webmorphing/results/',
-        ALLOWED_EXTENSIONS=['jpg', 'png', 'jpeg']
+        ALLOWED_EXTENSIONS=['jpg', 'png', 'jpeg'],
+        MAX_CONTENT_LENGTH=(2*1024*1024)  # 2MB
     )
 
     app.logger.setLevel(logging.INFO)

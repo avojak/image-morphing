@@ -91,7 +91,7 @@ class ImageMorph:
         # TODO: Make pool size configurable?
         with Pool(processes=self.pool_size) as pool:
             results = []
-            for frame_num in range(0, num_frames):
+            for frame_num in range(0, num_frames + 1):
                 t = frame_num / num_frames
                 res = pool.apply_async(self._process_func, (triangulation, t, frame_num, (H, W, C)))
                 results.append(res)

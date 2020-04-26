@@ -11,7 +11,7 @@
 <body>
 
     <main>
-        <section class="content">
+        <section class="content" id="alerts">
             {% for message in get_flashed_messages() %}
             <div class="flash alert alert-danger alert-dismissible fade show" role="alert">
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -44,7 +44,7 @@
                             <div class="card-body d-flex flex-column">
                                 <div class="input-group mt-auto">
                                     <div class="custom-file">
-                                        <input type="file" class="custom-file-input" id="source-img-input" name="source-img">
+                                        <input type="file" class="custom-file-input" id="source-img-input" name="source-img" accept=".png,.jpg,.jpeg">
                                         <label class="custom-file-label" for="source-img-input">Choose source image</label>
                                     </div>
                                 </div>
@@ -69,7 +69,7 @@
                             <div class="card-body d-flex flex-column">
                                 <div class="input-group mt-auto">
                                     <div class="custom-file">
-                                        <input type="file" class="custom-file-input" id="target-img-input" name="target-img">
+                                        <input type="file" class="custom-file-input" id="target-img-input" name="target-img" accept=".png,.jpg,.jpeg">
                                         <label class="custom-file-label" for="target-img-input">Choose target image</label>
                                     </div>
                                 </div>
@@ -83,7 +83,16 @@
                         </div>
                     </div>
                     <div class="container col-md-7">
-                        <div class="form-group row form-inline">
+                        <div class="row justify-content-center">
+                            <small class="text-muted"><i>Acceptable image formats: JPEG, PNG</i></small>
+                        </div>
+                        <div class="row justify-content-center">
+                            <small class="text-muted"><i>Maximum image resolution: 600x600</i></small>
+                        </div>
+                        <div class="row justify-content-center">
+                            <small class="text-muted"><i>Maximum file size: 2MB</i></small>
+                        </div>
+                        <div class="form-group row form-inline" style="margin-top: 20px;">
                             <label class="col-form-label justify-content-start col-sm-4" for="gif_duration">Duration:</label>
                             <input type="number" class="form-control col-sm-2" id="gif_duration" name="gif_duration" min="1" max="5" value="3">
                             <small id="gifDurationInlineHelp" class="text-muted col-sm-6">Must be between 1 and 5 seconds.</small>
@@ -124,23 +133,84 @@
         crossorigin="anonymous"></script>
 
 <script>
+    // function alertImageSize() {
+    //     let alertTag = "<div class=\"flash alert alert-danger alert-dismissible fade show\" id=\"image-resolution-alert\" role=\"alert\">\n" +
+    //         "                <button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">\n" +
+    //         "                    <span aria-hidden=\"true\">&times;</span>\n" +
+    //         "                </button>\n" +
+    //         "                Maximum file size is 2MB.\n" +
+    //         "            </div>";
+    //     $('#alerts').append(alertTag);
+    // }
+    //
+    // function alertImageResolution() {
+    //     let alertTag = "<div class=\"flash alert alert-danger alert-dismissible fade show\" id=\"image-resolution-alert\" role=\"alert\">\n" +
+    //         "                <button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">\n" +
+    //         "                    <span aria-hidden=\"true\">&times;</span>\n" +
+    //         "                </button>\n" +
+    //         "                Maximum image resolution is 600x600.\n" +
+    //         "            </div>";
+    //     $('#alerts').append(alertTag);
+    // }
+    //
+    // function alertMatchingResolution() {
+    //     let alertTag = "<div class=\"flash alert alert-danger alert-dismissible fade show\" id=\"image-resolution-alert\" role=\"alert\">\n" +
+    //         "                <button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">\n" +
+    //         "                    <span aria-hidden=\"true\">&times;</span>\n" +
+    //         "                </button>\n" +
+    //         "                Images must have matching resolution.\n" +
+    //         "            </div>";
+    //     $('#alerts').append(alertTag);
+    // }
+
     /**
      * Listener function called by the when a 'change' event occurs on the image loaders.
      * @param e The event
      */
     function loadImage(e) {
+        // Reset alerts
+        $('#alerts').empty();
+
+        // // Verify file size < 2MB
+        // let maxFileSize = 2000000; // MB
+        // if (e.target.files[0].size > maxFileSize) {
+        //     $('#source-img-input').val('');
+        //     alertImageSize();
+        //     let control = $("#source-img-input");
+        //     control.replaceWith(control.clone(true));
+        //     return false;
+        // }
+
         let reader = new FileReader();
         let imgCanvas = document.getElementById(e.currentTarget.imgCanvasElementId);
         let ptsCanvas = document.getElementById(e.currentTarget.ptsCanvasElementId);
 
-        // Toggle visibility of the placeholder and canvas elements
-        $("#"+e.currentTarget.imgCanvasElementId).show();
-        $("#"+e.currentTarget.ptsCanvasElementId).show();
-        $("#"+e.currentTarget.placeholderElementId).hide();
+        // let invalidResolution = false;
+        // let loader = e.currentTarget;
 
         reader.onload = function (event) {
             let img = new Image();
             img.onload = function() {
+                // // Verify image resolution
+                // if (img.width > 600 || img.height > 600) {
+                //     alertImageResolution();
+                //     invalidResolution = true;
+                //     return;
+                // }
+
+                // loader.imageHeight = img.height;
+                // loader.imageWidth = img.width;
+
+                // // Verify matching resolution
+                // if ($('#source-img-input').files.length > 0 && $('#target-img-input').files.length > 0) {
+                //     if ((sourceImageLoader.imageWidth !== targetImageLoader.imageWidth) ||
+                //          sourceImageLoader.imageHeight !== targetImageLoader.imageHeight) {
+                //         alertMatchingResolution();
+                //         invalidResolution = true;
+                //         return;
+                //     }
+                // }
+
                 imgCanvas.width = img.width;
                 imgCanvas.height = img.height;
                 ptsCanvas.width = img.width;
@@ -150,6 +220,17 @@
             img.src = event.target.result;
         };
         reader.readAsDataURL(e.target.files[0]);
+
+        // if (invalidResolution) {
+        //     $('#source-img-input').val('');
+        //     return;
+        // }
+
+        // Toggle visibility of the placeholder and canvas elements
+        $("#"+e.currentTarget.imgCanvasElementId).show();
+        $("#"+e.currentTarget.ptsCanvasElementId).show();
+        $("#"+e.currentTarget.placeholderElementId).hide();
+
         // Reset the selected points when a new image is loaded
         e.currentTarget.selectedPoints = [];
         $('#'+e.currentTarget.pointCountElementId).html(0);
@@ -165,6 +246,8 @@
     sourceImageLoader.placeholderElementId = "source-img-placeholder";
     sourceImageLoader.pointCountElementId = "source-point-count";
     sourceImageLoader.selectedPoints = [];
+    // sourceImageLoader.imageWidth = 0;
+    // sourceImageLoader.imageHeight = 0;
 
     let targetImageLoader = document.getElementById('target-img-input');
     targetImageLoader.addEventListener('change', loadImage, false);
@@ -173,6 +256,8 @@
     targetImageLoader.placeholderElementId = "target-img-placeholder";
     targetImageLoader.pointCountElementId = "target-point-count";
     targetImageLoader.selectedPoints = [];
+    // targetImageLoader.imageWidth = 0;
+    // targetImageLoader.imageHeight = 0;
 
     $('#source-img-input').change(function(e) {
         $(this).next('.custom-file-label').html(e.target.files[0].name);
