@@ -22,7 +22,6 @@
     <section class="jumbotron text-center">
         <div class="container">
             <h1 class="jumbotron-heading">Let's see the results!</h1>
-<!--            <p class="lead text-muted">Choose two images, select corresponding points, and create an animated GIF of the morphing!</p>-->
         </div>
     </section>
     <div class="album py-5 bg-light">
@@ -69,6 +68,9 @@
                     </div>
                     <div class="card-body d-flex flex-column">
                         <h5 class="card-title">Morphing GIF</h5>
+                        <p class="card-text">
+                            <small class="text-muted"><i>If the animation appears broken once loaded, please refresh the page.</i></small>
+                        </p>
                     </div>
                 </div>
                 <div class="card invisible"></div>
@@ -77,7 +79,6 @@
                 <a href="{{ url_for('home.morph') }}" id="do_it_again" hidden>
                     <input type="button" class="btn btn-primary" value="Do it again!"/>
                 </a>
-                <!--                        <button type="submit" class="btn btn-primary" id="submit-button" disabled>Morph!</button>-->
             </div>
         </div>
     </div>
@@ -141,8 +142,6 @@
     $(document).ready(function () {
         // Schedule the first invocations
         let poll_frequency = 1000;
-        // setTimeout(retrieveImage, poll_frequency, "{{ url_for('home.get_source_image', req_id=g.req_id) }}", "#source-img", "image/jpeg");
-        // setTimeout(retrieveImage, poll_frequency, "{{ url_for('home.get_target_image', req_id=g.req_id) }}", "#target-img", "image/jpeg");
         setTimeout(retrieveImage, poll_frequency, "{{ url_for('home.get_point_mapping_image', req_id=g.req_id) }}", "#point-mapping", "image/png", "point-mapping.png");
         setTimeout(retrieveImage, poll_frequency, "{{ url_for('home.get_source_triangulation_image', req_id=g.req_id) }}", "#source-triangulation", "image/png", "source-triangulation.png");
         setTimeout(retrieveImage, poll_frequency, "{{ url_for('home.get_target_triangulation_image', req_id=g.req_id) }}", "#target-triangulation", "image/png", "target-triangulation.png");

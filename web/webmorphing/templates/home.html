@@ -133,36 +133,6 @@
         crossorigin="anonymous"></script>
 
 <script>
-    // function alertImageSize() {
-    //     let alertTag = "<div class=\"flash alert alert-danger alert-dismissible fade show\" id=\"image-resolution-alert\" role=\"alert\">\n" +
-    //         "                <button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">\n" +
-    //         "                    <span aria-hidden=\"true\">&times;</span>\n" +
-    //         "                </button>\n" +
-    //         "                Maximum file size is 2MB.\n" +
-    //         "            </div>";
-    //     $('#alerts').append(alertTag);
-    // }
-    //
-    // function alertImageResolution() {
-    //     let alertTag = "<div class=\"flash alert alert-danger alert-dismissible fade show\" id=\"image-resolution-alert\" role=\"alert\">\n" +
-    //         "                <button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">\n" +
-    //         "                    <span aria-hidden=\"true\">&times;</span>\n" +
-    //         "                </button>\n" +
-    //         "                Maximum image resolution is 600x600.\n" +
-    //         "            </div>";
-    //     $('#alerts').append(alertTag);
-    // }
-    //
-    // function alertMatchingResolution() {
-    //     let alertTag = "<div class=\"flash alert alert-danger alert-dismissible fade show\" id=\"image-resolution-alert\" role=\"alert\">\n" +
-    //         "                <button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">\n" +
-    //         "                    <span aria-hidden=\"true\">&times;</span>\n" +
-    //         "                </button>\n" +
-    //         "                Images must have matching resolution.\n" +
-    //         "            </div>";
-    //     $('#alerts').append(alertTag);
-    // }
-
     /**
      * Listener function called by the when a 'change' event occurs on the image loaders.
      * @param e The event
@@ -171,46 +141,13 @@
         // Reset alerts
         $('#alerts').empty();
 
-        // // Verify file size < 2MB
-        // let maxFileSize = 2000000; // MB
-        // if (e.target.files[0].size > maxFileSize) {
-        //     $('#source-img-input').val('');
-        //     alertImageSize();
-        //     let control = $("#source-img-input");
-        //     control.replaceWith(control.clone(true));
-        //     return false;
-        // }
-
         let reader = new FileReader();
         let imgCanvas = document.getElementById(e.currentTarget.imgCanvasElementId);
         let ptsCanvas = document.getElementById(e.currentTarget.ptsCanvasElementId);
 
-        // let invalidResolution = false;
-        // let loader = e.currentTarget;
-
         reader.onload = function (event) {
             let img = new Image();
             img.onload = function() {
-                // // Verify image resolution
-                // if (img.width > 600 || img.height > 600) {
-                //     alertImageResolution();
-                //     invalidResolution = true;
-                //     return;
-                // }
-
-                // loader.imageHeight = img.height;
-                // loader.imageWidth = img.width;
-
-                // // Verify matching resolution
-                // if ($('#source-img-input').files.length > 0 && $('#target-img-input').files.length > 0) {
-                //     if ((sourceImageLoader.imageWidth !== targetImageLoader.imageWidth) ||
-                //          sourceImageLoader.imageHeight !== targetImageLoader.imageHeight) {
-                //         alertMatchingResolution();
-                //         invalidResolution = true;
-                //         return;
-                //     }
-                // }
-
                 imgCanvas.width = img.width;
                 imgCanvas.height = img.height;
                 ptsCanvas.width = img.width;
@@ -220,11 +157,6 @@
             img.src = event.target.result;
         };
         reader.readAsDataURL(e.target.files[0]);
-
-        // if (invalidResolution) {
-        //     $('#source-img-input').val('');
-        //     return;
-        // }
 
         // Toggle visibility of the placeholder and canvas elements
         $("#"+e.currentTarget.imgCanvasElementId).show();
@@ -246,8 +178,6 @@
     sourceImageLoader.placeholderElementId = "source-img-placeholder";
     sourceImageLoader.pointCountElementId = "source-point-count";
     sourceImageLoader.selectedPoints = [];
-    // sourceImageLoader.imageWidth = 0;
-    // sourceImageLoader.imageHeight = 0;
 
     let targetImageLoader = document.getElementById('target-img-input');
     targetImageLoader.addEventListener('change', loadImage, false);
@@ -256,8 +186,6 @@
     targetImageLoader.placeholderElementId = "target-img-placeholder";
     targetImageLoader.pointCountElementId = "target-point-count";
     targetImageLoader.selectedPoints = [];
-    // targetImageLoader.imageWidth = 0;
-    // targetImageLoader.imageHeight = 0;
 
     $('#source-img-input').change(function(e) {
         $(this).next('.custom-file-label').html(e.target.files[0].name);
@@ -380,8 +308,6 @@
     }
 
     $("#images").submit(function(e) {
-        // TODO: Add pre-checks for valid input
-
         $("<input />").attr('type', 'hidden')
                      .attr('name', 'source_points')
                      .attr('value', JSON.stringify(sourceImageLoader.selectedPoints))
