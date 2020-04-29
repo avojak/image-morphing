@@ -34,6 +34,8 @@ To run locally without needing to build the Docker image:
 $ export FLASK_APP=webmorphing; flask run 
 ```
 
+The UI will be available at [localhost:5000/morph](localhost:5000/morph)
+
 ## Attribution
 
 Cat photo used in the example GIF by [Matthew Kerslake](https://unsplash.com/@mattkerslake?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText) on [Unsplash](https://unsplash.com/s/photos/cat?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText).
