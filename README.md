@@ -1,5 +1,7 @@
 # image-morphing
 
+[![Build Status](https://travis-ci.com/avojak/image-morphing.svg?token=7woVhJy8YaHrvHwYkFnY&branch=master)](https://travis-ci.com/avojak/image-morphing)
+
 Implementation of image morphing with a web front-end. Images are uploaded, 
 and the user selects corresponding points in the two images.
 
@@ -20,7 +22,7 @@ A Docker image is produced and can be run with the following command:
 $ docker run -it -p 8080:8080 avojak/image-morphing:{version}
 ```
 
-The UI will be available at [localhost:8080/morph](localhost:8080/morph).
+The UI will be available at [http://localhost:8080/morph](http://localhost:8080/morph).
 
 ## Example Results
 
@@ -34,7 +36,16 @@ To run locally without needing to build the Docker image:
 $ export FLASK_APP=webmorphing; flask run 
 ```
 
-The UI will be available at [localhost:5000/morph](localhost:5000/morph)
+The UI will be available at [http://localhost:5000/morph](http://localhost:5000/morph).
+
+## Technologies Used
+
+* [OpenCV](https://pypi.org/project/opencv-python/) - Image IO, computing affine transformations
+* [Scipy](https://pypi.org/project/scipy/) - Computing Delaunay triangulations
+* [Matplotlib](https://pypi.org/project/matplotlib/) - Creating plots
+* [Flask](https://pypi.org/project/Flask/) - Web server
+* [Bootstrap](https://getbootstrap.com) - Making a half-decent looking UI
+* [Docker](https://www.docker.com) - Portable distribution
 
 ## Attribution
 
