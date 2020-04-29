@@ -5,6 +5,13 @@
 Implementation of image morphing with a web front-end. Images are uploaded, 
 and the user selects corresponding points in the two images.
 
+![Input Home Page](examples/inputs.png)
+
+![Results Page](examples/outputs.png)
+
+This was created for the CS 445 Spring 2020 Final Project at the University of Illinois at Urbana-Champaign.
+There are plenty of things that could be better but it works, and again this was for a school project!
+
 ## Building
 
 ```bash
