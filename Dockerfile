@@ -10,10 +10,11 @@ RUN apt-get update && \
                        libxext6 \
                        libxrender-dev \
                        imagemagick && \
+    python -m pip install --upgrade pip && \
     pip install -r requirements.txt && \
     pip install ./lib/ && \
     pip install ./web/
 
 EXPOSE 8080
 
-ENTRYPOINT waitress-serve --call 'webmorphing:create_app'
+ENTRYPOINT [ "waitress-serve", "--call", "webmorphing:create_app" ]
