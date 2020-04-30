@@ -48,7 +48,7 @@ $ make all
 To run locally for testing:
 
 ```bash
-$ export FLASK_APP=webmorphing; flask run 
+$ export FLASK_APP=webmorphing; flask run
 ```
 
 The UI will be available at [http://localhost:5000/morph](http://localhost:5000/morph).
