@@ -11,11 +11,8 @@ RUN apt-get update && \
                        libxrender-dev \
                        imagemagick && \
     pip install -r requirements.txt && \
-    pip install ./lib/ \
-                ./web/ && \
-    rm -rf ./requirements.txt \
-           ./lib \
-           ./web
+    pip install ./lib/ && \
+    pip install ./web/
 
 EXPOSE 8080
 

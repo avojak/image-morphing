@@ -56,7 +56,7 @@ To run locally for testing:
 $ export FLASK_APP=webmorphing; flask run
 ```
 
-The UI will be available at [http://localhost:5000/morph](http://localhost:5000/morph).
+The UI will be available at [http://localhost:5000](http://localhost:5000).
 
 ### Docker Image
 
@@ -66,7 +66,7 @@ A Docker image is also produced and can be run with the following command:
 $ docker run -it -p 8080:8080 avojak/image-morphing:{version}
 ```
 
-The UI will be available at [http://localhost:8080/morph](http://localhost:8080/morph).
+The UI will be available at [http://localhost:8080](http://localhost:8080).
 
 ## Example Results
 
