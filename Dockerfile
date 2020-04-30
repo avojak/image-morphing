@@ -17,4 +17,4 @@ RUN apt-get update && \
 
 EXPOSE 8080
 
-ENTRYPOINT [ "waitress-serve", "--call", "webmorphing:create_app" ]
+CMD [ "waitress-serve", "--call", "webmorphing:create_app" ]
