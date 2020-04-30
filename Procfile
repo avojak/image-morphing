@@ -1,0 +1,1 @@
+web: waitress-serve --call 'webmorphing:create_app'
