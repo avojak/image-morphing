@@ -17,17 +17,17 @@ There are plenty of things that could be better but it works, and again this was
 Install the following pre-requisite software:
 
 * Python 3
-* Docker (if building the Docker image)
-* ImageMagick (if running the test server locally)
+* Docker (only if building the Docker image)
+* ImageMagick (only if running the test server locally)
 
-## Building the Python Packages
+### Building the Python Packages
 
 ```bash
 $ pip install -r requirements.txt
 $ make lib web
 ```
 
-## Building the Docker Image
+### Building the Docker Image
 
 If the Python packages have already been built, you can build the Docker image by itself:
 
