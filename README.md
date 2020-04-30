@@ -14,16 +14,48 @@ There are plenty of things that could be better but it works, and again this was
 
 ## Building
 
+Install the following pre-requisite software:
+
+* Python 3
+* Docker (if building the Docker image)
+* ImageMagick (if running the test server locally)
+
+## Building the Python Packages
+
 ```bash
 $ pip install -r requirements.txt
+$ make lib web
+```
+
+## Building the Docker Image
+
+If the Python packages have already been built, you can build the Docker image by itself:
+
+```bash
+$ make image
+```
+
+To build everything:
+
+```bash
 $ make all
 ```
 
-Note that imagemagick is also required.
-
 ## Running
 
-A Docker image is produced and can be run with the following command:
+### Test Server
+
+To run locally for testing:
+
+```bash
+$ export FLASK_APP=webmorphing; flask run 
+```
+
+The UI will be available at [http://localhost:5000/morph](http://localhost:5000/morph).
+
+### Docker Image
+
+A Docker image is also produced and can be run with the following command:
 
 ```bash
 $ docker run -it -p 8080:8080 avojak/image-morphing:{version}
@@ -35,21 +67,14 @@ The UI will be available at [http://localhost:8080/morph](http://localhost:8080/
 
 ![Sample Morph](examples/morph.gif)
 
-## Test Server
 
-To run locally without needing to build the Docker image:
-
-```bash
-$ export FLASK_APP=webmorphing; flask run 
-```
-
-The UI will be available at [http://localhost:5000/morph](http://localhost:5000/morph).
 
 ## Technologies Used
 
 * [OpenCV](https://pypi.org/project/opencv-python/) - Image IO, computing affine transformations
 * [Scipy](https://pypi.org/project/scipy/) - Computing Delaunay triangulations
 * [Matplotlib](https://pypi.org/project/matplotlib/) - Creating plots
+* [ImageMagick](http://www.imagemagick.org) - Producing the animated GIF
 * [Flask](https://pypi.org/project/Flask/) - Web server
 * [Bootstrap](https://getbootstrap.com) - Making a half-decent looking UI
 * [Docker](https://www.docker.com) - Portable distribution
