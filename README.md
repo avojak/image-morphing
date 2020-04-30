@@ -22,14 +22,16 @@ Install the following pre-requisite software:
 
 ### Building the Python Packages
 
+To build only the Python packages:
+
 ```bash
 $ pip install -r requirements.txt
 $ make lib web
 ```
 
-### Building the Docker Image
+### Building the Docker Image (Recommended)
 
-If the Python packages have already been built, you can build the Docker image by itself:
+To build the Docker image:
 
 ```bash
 $ make image
@@ -40,6 +42,9 @@ To build everything:
 ```bash
 $ make all
 ```
+
+Note that building all only makes sense if you intend to consume the Python packages directly. Otherwise simply
+building the Docker image will produce a portable distribution.
 
 ## Running
 

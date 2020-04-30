@@ -1,7 +1,7 @@
 FROM python:3.8-slim
 
-COPY ./lib/dist/libmorphing-*.tar.gz .
-COPY ./web/dist/webmorphing-*.tar.gz .
+COPY ./lib ./lib
+COPY ./web ./web
 COPY ./requirements.txt .
 
 RUN apt-get update && \
@@ -11,11 +11,11 @@ RUN apt-get update && \
                        libxrender-dev \
                        imagemagick && \
     pip install -r requirements.txt && \
-    pip install ./libmorphing-*.tar.gz \
-                ./webmorphing-*.tar.gz && \
-    rm ./requirements.txt \
-       ./libmorphing-*.tar.gz \
-       ./webmorphing-*.tar.gz
+    pip install ./lib/ \
+                ./web/ && \
+    rm -rf ./requirements.txt \
+           ./lib \
+           ./web
 
 EXPOSE 8080
 

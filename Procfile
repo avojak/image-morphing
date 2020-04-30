@@ -1,1 +1,0 @@
-web: export FLASK_APP=webmorphing; flask run
