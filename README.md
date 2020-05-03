@@ -3,7 +3,9 @@
 [![Build Status](https://travis-ci.com/avojak/image-morphing.svg?token=7woVhJy8YaHrvHwYkFnY&branch=master)](https://travis-ci.com/avojak/image-morphing)
 
 Implementation of image morphing with a web front-end. Images are uploaded, 
-and the user selects corresponding points in the two images.
+and the user selects corresponding points in the images.
+
+Demo video: https://www.youtube.com/watch?v=S3hfBqrwQms
 
 ![Input Home Page](examples/inputs.png)
 
