@@ -72,6 +72,8 @@ The UI will be available at [http://localhost:8080](http://localhost:8080).
 
 ![Sample Morph](examples/morph.gif)
 
+![Sample Morph](examples/morphing-4.gif)
+
 
 
 ## Technologies Used
