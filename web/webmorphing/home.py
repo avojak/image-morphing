@@ -28,6 +28,10 @@ def home():
 @bp.route('/morph', methods=['POST', 'GET'])
 def morph():
     if request.method == 'POST':
+        has_middle_image = False
+        if 'middle-img' in request.files and request.files['middle-img'].filename != '':
+            has_middle_image = True
+
         # Ensure that we've actually received both image files
         if 'source-img' not in request.files or request.files['source-img'].filename == '':
             flash('No source image.')
@@ -40,15 +44,24 @@ def morph():
         if not allowed_file(request.files['source-img'].filename):
             flash('Source image file type is not allowed.')
             return redirect(request.url)
+        if has_middle_image and not allowed_file(request.files['middle-img'].filename):
+            flash('Middle image file type is not allowed.')
+            return redirect(request.url)
         if not allowed_file(request.files['target-img'].filename):
             flash('Target image file type is not allowed.')
             return redirect(request.url)
 
         # Ensure that we've received the source and target points
         source_points = json.loads(request.form['source_points'])
+        middle_points = None
+        if has_middle_image:
+            middle_points = json.loads(request.form['middle_points'])
         target_points = json.loads(request.form['target_points'])
         if len(source_points) == 0:
             flash('No source points selected.')
+            return redirect(request.url)
+        if has_middle_image and len(middle_points) == 0:
+            flash('No middle points selected.')
             return redirect(request.url)
         if len(target_points) == 0:
             flash('No target points selected.')
@@ -76,27 +89,44 @@ def morph():
 
         # Extract the image files from the request and save them in the upload folder
         source_img = request.files['source-img']
+        middle_img = None
+        if has_middle_image:
+            middle_img = request.files['middle-img']
         target_img = request.files['target-img']
         source_img_path = os.path.join(req_dir, 'source_img')
+        middle_img_path = None
+        if has_middle_image:
+            middle_img_path = os.path.join(req_dir, 'middle_img')
         target_img_path = os.path.join(req_dir, 'target_img')
         source_img.save(source_img_path)
+        if has_middle_image:
+            middle_img.save(middle_img_path)
         target_img.save(target_img_path)
 
         # Verify image dimensions
         source_shape = cv2.imread(source_img_path).shape
+        middle_shape = None
+        if has_middle_image:
+            middle_shape = cv2.imread(middle_img_path).shape
         target_shape = cv2.imread(target_img_path).shape
         if source_shape[0] > 600 or source_shape[1] > 600 or target_shape[0] > 600 or target_shape[1] > 600:
+            flash('Maximum image resolution is 600x600.')
+            return redirect(request.url)
+        if has_middle_image and (middle_shape[0] > 600 or middle_shape[1] > 600):
             flash('Maximum image resolution is 600x600.')
             return redirect(request.url)
         if source_shape != target_shape:
             flash('Source and target image have mismatching resolutions.')
             return redirect(request.url)
+        if has_middle_image and source_shape != middle_shape:
+            flash('Source and middle image have mismatching resolutions.')
+            return redirect(request.url)
 
         Thread(target=thread_func,
-               args=(source_img_path, target_img_path, source_points, target_points, res_dir, gif_duration, gif_fps)
-               ).start()
+               args=(source_img_path, middle_img_path, target_img_path, source_points, middle_points, target_points,
+                     res_dir, gif_duration, gif_fps)).start()
 
-        return redirect(url_for('home.morph_result', req_id=req_id))
+        return redirect(url_for('home.morph_result', req_id=req_id, has_middle_image=has_middle_image))
     else:
         return render_template('home.html')
 
@@ -126,16 +156,28 @@ def get_target_image(req_id):
     return get_image(os.path.join(get_req_dir(req_id), 'target_img'))
 
 
-@bp.route('/results/<req_id>/point-mapping-image', methods=['GET'])
-def get_point_mapping_image(req_id):
+@bp.route('/results/<req_id>/source-middle-mapping-image', methods=['GET'])
+def get_source_middle_mapping_image(req_id):
     validate_request_id(req_id)
-    return get_image(os.path.join(get_res_dir(req_id), 'mapping.png'))
+    return get_image(os.path.join(get_res_dir(req_id), 'source-middle-mapping.png'))
+
+
+@bp.route('/results/<req_id>/source-target-mapping-image', methods=['GET'])
+def get_source_target_mapping_image(req_id):
+    validate_request_id(req_id)
+    return get_image(os.path.join(get_res_dir(req_id), 'source-target-mapping.png'))
 
 
 @bp.route('/results/<req_id>/source-triangulation-image', methods=['GET'])
 def get_source_triangulation_image(req_id):
     validate_request_id(req_id)
     return get_image(os.path.join(get_res_dir(req_id), 'source_triangulation.png'))
+
+
+@bp.route('/results/<req_id>/middle-triangulation-image', methods=['GET'])
+def get_middle_triangulation_image(req_id):
+    validate_request_id(req_id)
+    return get_image(os.path.join(get_res_dir(req_id), 'middle_triangulation.png'))
 
 
 @bp.route('/results/<req_id>/target-triangulation-image', methods=['GET'])
@@ -179,5 +221,7 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in current_app.config['ALLOWED_EXTENSIONS']
 
 
-def thread_func(source_img_path, target_img_path, source_points, target_points, output_dir, gif_duration, gif_fps):
-    ImageMorph(source_img_path, target_img_path, source_points, target_points, output_dir, gif_duration, gif_fps)
+def thread_func(source_img_path, middle_img_path, target_img_path, source_points, middle_points, target_points,
+                output_dir, gif_duration, gif_fps):
+    ImageMorph(source_img_path, middle_img_path, target_img_path, source_points, middle_points, target_points,
+               output_dir, gif_duration, gif_fps)

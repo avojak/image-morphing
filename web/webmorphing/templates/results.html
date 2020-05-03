@@ -28,14 +28,25 @@
         <div class="container">
             <div class="card-deck justify-content-center">
                 <div class="card box-shadow result-card">
-                    <div class="card-top" id="point-mapping">
+                    <div class="card-top" id="source-middle-mapping">
                         <div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div>
                     </div>
                     <div class="card-body d-flex flex-column">
-                        <h5 class="card-title">Point Mapping</h5>
+                        <h5 class="card-title">Source-Middle Mapping</h5>
+                        <p class="card-text">Visualization of corresponding points in the source and middle images.</p>
+                    </div>
+                </div>
+                <div class="card box-shadow result-card">
+                    <div class="card-top" id="source-target-mapping">
+                        <div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">Source-Target Mapping</h5>
                         <p class="card-text">Visualization of corresponding points in the source and target images.</p>
                     </div>
                 </div>
+            </div>
+            <div class="card-deck justify-content-center">
                 <div class="card box-shadow result-card">
                     <div class="card-top" id="source-triangulation">
                         <div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div>
@@ -45,6 +56,18 @@
                         <p class="card-text">Visualization of the <a
                                 href="https://en.wikipedia.org/wiki/Delaunay_triangulation">Delaunay triangulation</a>
                             using the selected points on the source image.</p>
+                    </div>
+                </div>
+                <div class="card box-shadow result-card">
+                    <div class="card-top" id="middle-triangulation">
+                        <div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">Middle Triangulation</h5>
+                        <p class="card-text">Visualization of the <a
+                                href="https://en.wikipedia.org/wiki/Delaunay_triangulation">Delaunay triangulation</a>
+                            using the selected points on the source image, but applied to the corresponding points on
+                            the middle image.</p>
                     </div>
                 </div>
                 <div class="card box-shadow result-card">
@@ -119,7 +142,7 @@
                 } else {
                     let image_data = byte_string.split('\'')[1];
                     let img_src = "data:" + img_data_type + ";base64," + image_data;
-                    let img_tag = "<img src=\"" + img_src + "\" id=\"source_img\" alt=\"Source Image\" width=\"300\"/>";
+                    let img_tag = "<img src=\"" + img_src + "\" id=\"source_img\" alt=\"Image\" width=\"300\"/>";
                     $(wrapper_tag_id).empty();
                     $(wrapper_tag_id).append(img_tag);
                     let download_tag = "<div class=\"card-footer\">\n" +
@@ -142,8 +165,10 @@
     $(document).ready(function () {
         // Schedule the first invocations
         let poll_frequency = 1000;
-        setTimeout(retrieveImage, poll_frequency, "{{ url_for('home.get_point_mapping_image', req_id=g.req_id) }}", "#point-mapping", "image/png", "point-mapping.png");
+        setTimeout(retrieveImage, poll_frequency, "{{ url_for('home.get_source_middle_mapping_image', req_id=g.req_id) }}", "#source-middle-mapping", "image/png", "source-middle-mapping.png");
+        setTimeout(retrieveImage, poll_frequency, "{{ url_for('home.get_source_target_mapping_image', req_id=g.req_id) }}", "#source-target-mapping", "image/png", "source-target-mapping.png");
         setTimeout(retrieveImage, poll_frequency, "{{ url_for('home.get_source_triangulation_image', req_id=g.req_id) }}", "#source-triangulation", "image/png", "source-triangulation.png");
+        setTimeout(retrieveImage, poll_frequency, "{{ url_for('home.get_middle_triangulation_image', req_id=g.req_id) }}", "#middle-triangulation", "image/png", "middle-triangulation.png");
         setTimeout(retrieveImage, poll_frequency, "{{ url_for('home.get_target_triangulation_image', req_id=g.req_id) }}", "#target-triangulation", "image/png", "target-triangulation.png");
         setTimeout(retrieveImage, poll_frequency, "{{ url_for('home.get_morphing_gif', req_id=g.req_id) }}", "#morphing-gif", "image/gif", "morphing.gif");
     });

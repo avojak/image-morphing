@@ -20,8 +20,8 @@ logger = logging.getLogger('libmorphing')
 
 class ImageMorph:
 
-    def __init__(self, source_img_path: str, target_img_path: str, source_points: list, target_points: list,
-                 output_dir: str, gif_duration: int, gif_fps: int) -> None:
+    def __init__(self, source_img_path: str, middle_img_path: str, target_img_path: str, source_points: list,
+                 middle_points: list, target_points: list, output_dir: str, gif_duration: int, gif_fps: int) -> None:
         """
         Create an animated GIF which morphs the source image into the target image.
 
@@ -34,22 +34,35 @@ class ImageMorph:
             correspond to points in the source image.
           - output_dir: The location where result images will be placed.
         """
+        self.has_middle_img = middle_img_path is not None
+
         self.source_img = cv2.imread(source_img_path)
+        if self.has_middle_img:
+            self.middle_img = cv2.imread(middle_img_path)
         self.target_img = cv2.imread(target_img_path)
 
         assert len(source_points) == len(target_points)
+        if self.has_middle_img:
+            assert len(source_points) == len(middle_points)
+
         self.source_points = source_points.copy()
+        if self.has_middle_img:
+            self.middle_points = middle_points.copy()
         self.target_points = target_points.copy()
 
         self.output_dir = output_dir
         os.makedirs(self.output_dir, exist_ok=True)
 
         assert self.source_img.shape == self.target_img.shape
+        if self.has_middle_img:
+            assert self.source_img.shape == self.middle_img.shape
 
         H, W, C = self.source_img.shape
 
         # Add the points at the corners of the images
         self.source_points.extend([[0, 0], [0, W - 1], [H - 1, 0], [H - 1, W - 1]])
+        if self.has_middle_img:
+            self.middle_points.extend([[0, 0], [0, W - 1], [H - 1, 0], [H - 1, W - 1]])
         self.target_points.extend([[0, 0], [0, W - 1], [H - 1, 0], [H - 1, W - 1]])
 
         # Define the configuration
@@ -60,6 +73,8 @@ class ImageMorph:
         logger.info('GIF duration: {}'.format(self.gif_duration))
         logger.info('GIF FPS: {}'.format(self.gif_fps))
         logger.info('Source image: {} ({}x{})'.format(source_img_path, W, H))
+        if self.has_middle_img:
+            logger.info('Middle image: {} ({}x{})'.format(middle_img_path, W, H))
         logger.info('Target image: {} ({}x{})'.format(target_img_path, W, H))
 
         self._morph()
@@ -68,19 +83,27 @@ class ImageMorph:
         """
         Performs the morphing.
         """
-        logger.debug('Writing mapping image...')
+        logger.debug('Writing mapping images...')
+        if self.has_middle_img:
+            io.write_mapping_img(self.source_img, self.middle_img, self.source_points, self.middle_points,
+                                 os.path.join(self.output_dir, 'source-middle-mapping.png'))
         io.write_mapping_img(self.source_img, self.target_img, self.source_points, self.target_points,
-                             os.path.join(self.output_dir, 'mapping.png'))
+                             os.path.join(self.output_dir, 'source-target-mapping.png'))
         logger.debug('Creating Delaunay triangulation...')
         triangulation = Delaunay(self.source_points)
 
         # From this point on, the points must be a NumPy array
         self.source_points = np.array(self.source_points)
+        if self.has_middle_img:
+            self.middle_points = np.array(self.middle_points)
         self.target_points = np.array(self.target_points)
 
         logger.debug('Writing triangulation images...')
         io.write_triangulation_img(triangulation, self.source_img, self.source_points,
                                    os.path.join(self.output_dir, 'source_triangulation.png'))
+        if self.has_middle_img:
+            io.write_triangulation_img(triangulation, self.middle_img, self.middle_points,
+                                       os.path.join(self.output_dir, 'middle_triangulation.png'))
         io.write_triangulation_img(triangulation, self.target_img, self.target_points,
                                    os.path.join(self.output_dir, 'target_triangulation.png'))
 
@@ -93,7 +116,23 @@ class ImageMorph:
             results = []
             for frame_num in range(0, num_frames + 1):
                 t = frame_num / num_frames
-                res = pool.apply_async(self._process_func, (triangulation, t, frame_num, (H, W, C)))
+                if self.has_middle_img:
+                    if t <= 0.5:
+                        scaled_t = t / 0.5
+                        res = pool.apply_async(self._process_func,
+                                               (triangulation, scaled_t, frame_num, (H, W, C), self.source_img,
+                                                self.middle_img, self.source_points,
+                                                self.middle_points))
+                    else:
+                        scaled_t = (t - 0.5) / 0.5
+                        res = pool.apply_async(self._process_func,
+                                               (triangulation, scaled_t, frame_num, (H, W, C), self.middle_img,
+                                                self.target_img, self.middle_points,
+                                                self.target_points))
+                else:
+                    res = pool.apply_async(self._process_func, (triangulation, t, frame_num, (H, W, C), self.source_img,
+                                                                self.target_img, self.source_points,
+                                                                self.target_points))
                 results.append(res)
 
             for res in results:
@@ -104,7 +143,7 @@ class ImageMorph:
         logger.debug('Creating GIF...')
         io.write_gif(frame_dir, filename, self.gif_fps)
 
-    def _compute_frame(self, triangulation, t, shape):
+    def _compute_frame(self, triangulation, t, shape, source_img, target_img, source_points, target_points):
         """
         Computes a frame of the image morph.
 
@@ -127,20 +166,20 @@ class ImageMorph:
             simplices = triangulation.simplices[triangle_index]
             for v in range(0, 3):
                 simplex = triangulation.simplices[triangle_index][v]
-                P = self.source_points[simplex]
-                Q = self.target_points[simplex]
+                P = source_points[simplex]
+                Q = target_points[simplex]
                 average_triangles[triangle_index][v] = P + t * (Q - P)
 
             # Compute the affine projection to the source and target triangles
             source_triangle = np.float32([
-                self.source_points[simplices[0]],
-                self.source_points[simplices[1]],
-                self.source_points[simplices[2]]
+                source_points[simplices[0]],
+                source_points[simplices[1]],
+                source_points[simplices[2]]
             ])
             target_triangle = np.float32([
-                self.target_points[simplices[0]],
-                self.target_points[simplices[1]],
-                self.target_points[simplices[2]]
+                target_points[simplices[0]],
+                target_points[simplices[1]],
+                target_points[simplices[2]]
             ])
             average_triangle = np.float32(average_triangles[triangle_index])
             source_transform = cv2.getAffineTransform(average_triangle, source_triangle)
@@ -157,12 +196,12 @@ class ImageMorph:
 
                 # Perform a weighted average per-channel
                 for c in range(0, shape[2]):
-                    source_val = self.source_img[int(source_point[1]), int(source_point[0]), c]
-                    target_val = self.target_img[int(target_point[1]), int(target_point[0]), c]
+                    source_val = source_img[int(source_point[1]), int(source_point[0]), c]
+                    target_val = target_img[int(target_point[1]), int(target_point[0]), c]
                     frame[point[1], point[0], c] = round((1 - t) * source_val + t * target_val)
         return frame
 
-    def _process_func(self, triangulation, t, frame_num, shape):
-        frame = self._compute_frame(triangulation, t, shape)
+    def _process_func(self, triangulation, t, frame_num, shape, source_img, target_img, source_points, target_points):
+        frame = self._compute_frame(triangulation, t, shape, source_img, target_img, source_points, target_points)
         io.write_frame(frame, frame_num, os.path.join(self.output_dir, 'frames'))
         logger.debug('Created frame {}'.format(str(frame_num)))
